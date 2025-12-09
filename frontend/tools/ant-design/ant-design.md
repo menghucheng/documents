@@ -464,9 +464,419 @@ const I18nExample = () => {
 - **合理的目录结构**：根据功能或页面组织组件目录
 - **编写清晰的文档**：为组件编写使用文档和示例
 
-## 9. 常见问题
+## 9. 自定义组件
 
-### 9.1 样式冲突
+### 9.1 基础概念
+
+自定义组件是基于 Ant Design 组件库扩展或全新创建的组件，用于满足特定业务需求。自定义组件可以：
+
+- 扩展现有 Ant Design 组件的功能
+- 组合多个 Ant Design 组件
+- 实现全新的业务组件
+- 统一业务逻辑和样式
+
+### 9.2 扩展现有组件
+
+你可以通过包装现有 Ant Design 组件来扩展其功能：
+
+```javascript
+import React from 'react';
+import { Button, Tooltip } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+
+// 带提示的按钮组件
+const TooltipButton = ({ title, tooltip, ...props }) => {
+  return (
+    <Tooltip title={tooltip}>
+      <Button {...props}>
+        {title}
+        <QuestionCircleOutlined style={{ marginLeft: 8 }} />
+      </Button>
+    </Tooltip>
+  );
+};
+
+// 使用示例
+const App = () => {
+  return (
+    <div>
+      <TooltipButton
+        type="primary"
+        title="提交"
+        tooltip="点击提交表单数据"
+        onClick={() => console.log('提交')}
+      />
+    </div>
+  );
+};
+```
+
+### 9.3 自定义样式
+
+你可以使用 CSS Modules、styled-components 或 Less 来自定义组件样式：
+
+#### 9.3.1 使用 CSS Modules
+
+```javascript
+// CustomButton.module.css
+.customButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.customButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+// CustomButton.js
+import React from 'react';
+import { Button } from 'antd';
+import styles from './CustomButton.module.css';
+
+const CustomButton = ({ children, ...props }) => {
+  return (
+    <Button className={styles.customButton} {...props}>
+      {children}
+    </Button>
+  );
+};
+```
+
+#### 9.3.2 使用 styled-components
+
+```javascript
+import React from 'react';
+import { Button } from 'antd';
+import styled from 'styled-components';
+
+const StyledButton = styled(Button)`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4298 100%);
+  }
+`;
+
+const GradientButton = ({ children, ...props }) => {
+  return <StyledButton {...props}>{children}</StyledButton>;
+};
+```
+
+### 9.4 组合多个组件
+
+你可以组合多个 Ant Design 组件来创建复杂的自定义组件：
+
+```javascript
+import React, { useState } from 'react';
+import { Card, Input, Button, Space, message } from 'antd';
+import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
+
+// 搜索卡片组件
+const SearchCard = ({ title, onSearch, placeholder = '请输入搜索内容' }) => {
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = () => {
+    if (!searchText.trim()) {
+      message.warning('请输入搜索内容');
+      return;
+    }
+    onSearch(searchText);
+  };
+
+  const handleClear = () => {
+    setSearchText('');
+    onSearch('');
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  return (
+    <Card title={title}>
+      <Space.Compact style={{ width: '100%' }}>
+        <Input
+          placeholder={placeholder}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onPressEnter={handleKeyPress}
+          style={{ flex: 1 }}
+        />
+        <Button
+          type="primary"
+          icon={<SearchOutlined />}
+          onClick={handleSearch}
+        >
+          搜索
+        </Button>
+        <Button icon={<ClearOutlined />} onClick={handleClear}>
+          清空
+        </Button>
+      </Space.Compact>
+    </Card>
+  );
+};
+
+// 使用示例
+const App = () => {
+  const handleSearch = (text) => {
+    console.log('搜索内容:', text);
+    message.success(`搜索: ${text}`);
+  };
+
+  return (
+    <div style={{ padding: 24 }}>
+      <SearchCard
+        title="用户搜索"
+        onSearch={handleSearch}
+        placeholder="请输入用户名或邮箱"
+      />
+    </div>
+  );
+};
+```
+
+### 9.5 实现复杂业务组件
+
+以下是一个更复杂的业务组件示例 - 数据表格组件，包含搜索、筛选、分页等功能：
+
+```javascript
+import React, { useState } from 'react';
+import { Table, Input, Select, Button, Space, Card, Row, Col, Pagination } from 'antd';
+import { SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
+
+// 数据表格组件
+const DataTable = ({ 
+  title, 
+  columns, 
+  dataSource, 
+  onRefresh,
+  rowKey = 'id'
+}) => {
+  const [searchText, setSearchText] = useState('');
+  const [filteredData, setFilteredData] = useState(dataSource);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [filterOption, setFilterOption] = useState('');
+
+  // 搜索和筛选逻辑
+  const handleSearch = () => {
+    let result = [...dataSource];
+    
+    // 搜索
+    if (searchText) {
+      result = result.filter(item => {
+        return Object.values(item).some(value => {
+          return String(value).toLowerCase().includes(searchText.toLowerCase());
+        });
+      });
+    }
+    
+    // 筛选
+    if (filterOption) {
+      // 根据实际业务调整筛选逻辑
+      result = result.filter(item => item.status === filterOption);
+    }
+    
+    setFilteredData(result);
+    setCurrentPage(1);
+  };
+
+  // 分页数据
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  return (
+    <Card title={title}>
+      {/* 工具栏 */}
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              placeholder="搜索"
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <Button type="primary" onClick={handleSearch}>
+              搜索
+            </Button>
+          </Space.Compact>
+        </Col>
+        <Col span={6}>
+          <Select
+            placeholder="筛选状态"
+            style={{ width: '100%' }}
+            value={filterOption}
+            onChange={setFilterOption}
+          >
+            <Select.Option value="">全部</Select.Option>
+            <Select.Option value="active">活跃</Select.Option>
+            <Select.Option value="inactive">非活跃</Select.Option>
+          </Select>
+        </Col>
+        <Col span={10} style={{ textAlign: 'right' }}>
+          <Space>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={handleSearch}
+            >
+              筛选
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                setSearchText('');
+                setFilterOption('');
+                setFilteredData(dataSource);
+                if (onRefresh) onRefresh();
+              }}
+            >
+              刷新
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+      
+      {/* 表格 */}
+      <Table
+        columns={columns}
+        dataSource={paginatedData}
+        rowKey={rowKey}
+        pagination={false}
+        bordered
+      />
+      
+      {/* 分页 */}
+      <Row style={{ marginTop: 16, justifyContent: 'flex-end' }}>
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={filteredData.length}
+          onChange={(page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          }}
+          showSizeChanger
+          pageSizeOptions={['10', '20', '50', '100']}
+          showTotal={(total) => `共 ${total} 条记录`}
+        />
+      </Row>
+    </Card>
+  );
+};
+
+// 使用示例
+const App = () => {
+  const columns = [
+    { title: '姓名', dataIndex: 'name', key: 'name' },
+    { title: '年龄', dataIndex: 'age', key: 'age' },
+    { title: '邮箱', dataIndex: 'email', key: 'email' },
+    { title: '状态', dataIndex: 'status', key: 'status' },
+  ];
+
+  const dataSource = [
+    { id: 1, name: '张三', age: 32, email: 'zhangsan@example.com', status: 'active' },
+    { id: 2, name: '李四', age: 28, email: 'lisi@example.com', status: 'active' },
+    { id: 3, name: '王五', age: 45, email: 'wangwu@example.com', status: 'inactive' },
+    // 更多数据...
+  ];
+
+  return (
+    <div style={{ padding: 24 }}>
+      <DataTable
+        title="用户列表"
+        columns={columns}
+        dataSource={dataSource}
+        onRefresh={() => console.log('刷新数据')}
+      />
+    </div>
+  );
+};
+```
+
+### 9.6 自定义 Hook
+
+你可以创建自定义 Hook 来封装组件的业务逻辑：
+
+```javascript
+import { useState, useEffect } from 'react';
+
+// 分页 Hook
+const usePagination = (data, initialPage = 1, initialPageSize = 10) => {
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+
+  // 计算分页数据
+  const total = data.length;
+  const paginatedData = data.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  // 页码变化处理
+  const handlePageChange = (page, size) => {
+    setCurrentPage(page);
+    if (size) setPageSize(size);
+  };
+
+  return {
+    currentPage,
+    pageSize,
+    total,
+    paginatedData,
+    handlePageChange,
+  };
+};
+
+// 使用示例
+const DataList = ({ data }) => {
+  const { currentPage, pageSize, total, paginatedData, handlePageChange } = usePagination(data);
+
+  return (
+    <div>
+      {/* 渲染 paginatedData */}
+      <Pagination
+        current={currentPage}
+        pageSize={pageSize}
+        total={total}
+        onChange={handlePageChange}
+      />
+    </div>
+  );
+};
+```
+
+### 9.7 最佳实践
+
+1. **组件职责单一**：每个自定义组件只负责一个功能
+2. **props 设计合理**：使用清晰的 props 命名，提供合理的默认值
+3. **类型安全**：使用 TypeScript 定义组件 props 类型
+4. **可测试性**：组件设计便于单元测试
+5. **文档完善**：为自定义组件编写清晰的文档和示例
+6. **样式隔离**：使用 CSS Modules 或 styled-components 确保样式隔离
+7. **性能优化**：使用 React.memo、useMemo 和 useCallback 优化性能
+8. **遵循 Ant Design 设计规范**：保持与 Ant Design 设计风格一致
+
+## 10. 常见问题
+
+### 10.1 样式冲突
 
 如果遇到样式冲突问题，可以尝试以下解决方案：
 
@@ -474,7 +884,7 @@ const I18nExample = () => {
 - 为 Ant Design 组件添加自定义前缀
 - 调整样式加载顺序
 
-### 9.2 组件不显示
+### 10.2 组件不显示
 
 检查以下几点：
 
@@ -483,7 +893,7 @@ const I18nExample = () => {
 - 检查组件的父容器是否有正确的尺寸
 - 检查浏览器控制台是否有错误信息
 
-### 9.3 主题定制不生效
+### 10.3 主题定制不生效
 
 检查以下几点：
 
@@ -491,7 +901,7 @@ const I18nExample = () => {
 - 检查 less 版本是否兼容
 - 确保主题配置被正确应用
 
-## 10. 资源
+## 11. 资源
 
 - **官方文档**：https://ant.design/
 - **GitHub 仓库**：https://github.com/ant-design/ant-design
@@ -500,10 +910,12 @@ const I18nExample = () => {
 - **Ant Design Pro**：https://pro.ant.design/（企业级中后台解决方案）
 - **Ant Design Mobile**：https://mobile.ant.design/（移动端组件库）
 
-## 11. 总结
+## 12. 总结
 
 Ant Design 是一个功能强大、设计精良的企业级 UI 组件库，它提供了丰富的组件和工具，帮助开发者快速构建高质量的应用界面。通过合理使用 Ant Design，你可以提高开发效率，保证界面的一致性和专业性。
 
 Ant Design 的核心优势在于其完善的设计规范、丰富的组件库和良好的生态支持。它适用于各种规模的企业级应用，从小型项目到大型复杂系统都能胜任。
+
+自定义组件是 Ant Design 生态的重要组成部分，通过扩展和组合 Ant Design 组件，你可以快速构建符合业务需求的高质量组件。遵循自定义组件的最佳实践，可以提高组件的复用性、可维护性和性能。
 
 随着 React 生态的不断发展，Ant Design 也在持续演进，不断推出新的组件和功能，以满足开发者的需求。如果你正在构建企业级 React 应用，Ant Design 绝对是一个值得考虑的选择。

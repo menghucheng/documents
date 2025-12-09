@@ -460,6 +460,324 @@ const result = await prisma.$transaction(async (prisma) => {
 });
 ```
 
+### 6.3 高级查询
+
+#### 6.3.1 嵌套查询和过滤
+
+```javascript
+// 查询用户及其发布的帖子，并过滤帖子
+const usersWithPublishedPosts = await prisma.user.findMany({
+  include: {
+    posts: {
+      where: {
+        published: true,
+        title: {
+          contains: 'Prisma',
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 5,
+    },
+  },
+  where: {
+    posts: {
+      some: {
+        published: true,
+      },
+    },
+  },
+});
+
+// 查询帖子及其作者和评论
+const postsWithAuthorAndComments = await prisma.post.findMany({
+  include: {
+    author: {
+      select: {
+        name: true,
+        email: true,
+      },
+    },
+    comments: {
+      include: {
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    },
+  },
+  where: {
+    published: true,
+  },
+});
+```
+
+#### 6.3.2 条件查询（AND/OR/NOT）
+
+```javascript
+// AND 条件
+const users = await prisma.user.findMany({
+  where: {
+    AND: [
+      { name: { contains: 'John' } },
+      { email: { endsWith: '@example.com' } },
+    ],
+  },
+});
+
+// OR 条件
+const posts = await prisma.post.findMany({
+  where: {
+    OR: [
+      { title: { contains: 'Prisma' } },
+      { content: { contains: 'ORM' } },
+    ],
+  },
+});
+
+// NOT 条件
+const unpublishedPosts = await prisma.post.findMany({
+  where: {
+    NOT: {
+      published: true,
+    },
+  },
+});
+
+// 组合条件
+const complexQuery = await prisma.user.findMany({
+  where: {
+    AND: [
+      { name: { contains: 'John' } },
+      {
+        OR: [
+          { email: { endsWith: '@example.com' } },
+          { email: { endsWith: '@test.com' } },
+        ],
+      },
+      {
+        NOT: {
+          posts: {
+            none: {},
+          },
+        },
+      },
+    ],
+  },
+});
+```
+
+#### 6.3.3 批量操作
+
+```javascript
+// 批量创建
+const result = await prisma.user.createMany({
+  data: [
+    { name: 'Alice', email: 'alice@example.com' },
+    { name: 'Bob', email: 'bob@example.com' },
+    { name: 'Charlie', email: 'charlie@example.com' },
+  ],
+  skipDuplicates: true, // 跳过重复记录
+});
+
+// 批量更新
+const updatedPosts = await prisma.post.updateMany({
+  where: {
+    authorId: 1,
+    published: false,
+  },
+  data: {
+    published: true,
+  },
+});
+
+// 批量删除
+const deletedPosts = await prisma.post.deleteMany({
+  where: {
+    authorId: 1,
+    createdAt: {
+      lt: new Date('2023-01-01'),
+    },
+  },
+});
+```
+
+#### 6.3.4 高级分页和排序
+
+```javascript
+// 基于游标（Cursor）的分页
+const posts = await prisma.post.findMany({
+  take: 10,
+  skip: 1,
+  cursor: {
+    id: 10,
+  },
+  orderBy: {
+    id: 'asc',
+  },
+});
+
+// 多字段排序
+const users = await prisma.user.findMany({
+  orderBy: [
+    { createdAt: 'desc' },
+    { name: 'asc' },
+  ],
+});
+
+// 带条件的分页查询
+const paginatedPosts = await prisma.post.findMany({
+  where: {
+    published: true,
+    author: {
+      name: { contains: 'John' },
+    },
+  },
+  orderBy: {
+    createdAt: 'desc',
+  },
+  skip: 20,
+  take: 10,
+  include: {
+    author: {
+      select: {
+        name: true,
+      },
+    },
+  },
+});
+```
+
+#### 6.3.5 高级聚合查询
+
+```javascript
+// 按条件聚合
+const authorStats = await prisma.post.aggregate({
+  _count: {
+    id: true,
+  },
+  _avg: {
+    likes: true,
+  },
+  _sum: {
+    likes: true,
+  },
+  _max: {
+    createdAt: true,
+  },
+  where: {
+    published: true,
+  },
+  groupBy: [
+    'authorId',
+  ],
+  orderBy: {
+    _count: {
+      id: 'desc',
+    },
+  },
+});
+
+// 复杂分组查询
+const monthlyStats = await prisma.order.aggregate({
+  _sum: {
+    total: true,
+  },
+  _count: {
+    id: true,
+  },
+  groupBy: [
+    {
+      createdAt: {
+        year: true,
+        month: true,
+      },
+    },
+    'status',
+  ],
+  orderBy: [
+    {
+      createdAt: {
+        year: 'desc',
+        month: 'desc',
+      },
+    },
+  ],
+});
+```
+
+#### 6.3.6 事务中的复杂查询
+
+```javascript
+// 事务中的批量操作和查询
+const transactionResult = await prisma.$transaction(async (prisma) => {
+  // 1. 创建新用户
+  const user = await prisma.user.create({
+    data: {
+      name: 'New User',
+      email: 'newuser@example.com',
+    },
+  });
+
+  // 2. 批量创建帖子
+  await prisma.post.createMany({
+    data: [
+      {
+        title: 'Post 1',
+        content: 'Content 1',
+        authorId: user.id,
+        published: true,
+      },
+      {
+        title: 'Post 2',
+        content: 'Content 2',
+        authorId: user.id,
+        published: false,
+      },
+    ],
+  });
+
+  // 3. 查询用户及其所有帖子
+  const userWithPosts = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    include: {
+      posts: true,
+    },
+  });
+
+  // 4. 更新所有未发布的帖子
+  await prisma.post.updateMany({
+    where: {
+      authorId: user.id,
+      published: false,
+    },
+    data: {
+      published: true,
+    },
+  });
+
+  // 5. 返回最终结果
+  return {
+    user,
+    userWithPosts,
+    updatedPostsCount: await prisma.post.count({
+      where: {
+        authorId: user.id,
+        published: true,
+      },
+    }),
+  };
+});
+```
+
 ## 7. Prisma Studio
 
 ### 7.1 启动 Prisma Studio
