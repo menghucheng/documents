@@ -22,6 +22,110 @@ Get-Process -Name "chrome"
 New-Item -Path "C:\temp\test.txt" -ItemType "File" -Value "Hello World"
 ```
 
+#### 1.2.1 参数语法符号解释
+
+在PowerShell命令语法中，有一些特殊符号用于表示参数的不同特性：
+
+##### 方括号 `[-Name]` 的含义
+
+**方括号 `[ ]` 表示可选参数**，即这个参数可以使用也可以不使用。
+
+**详细说明：**
+- `[-Name]` 中的 `-Name` 是参数名
+- 整个 `[-Name]` 被方括号包围，表示这个参数是可选的
+- 参数名前的连字符 `-` 是PowerShell参数的标准前缀
+
+**示例：**
+在 `Get-Help [-Name] <String>` 中：
+- `[-Name]` 是可选的参数名
+- 如果你想明确指定参数名，可以写成 `Get-Help -Name "Get-Process"`
+- 如果你省略参数名，PowerShell会根据位置自动识别，写成 `Get-Help "Get-Process"`
+
+##### 双重方括号 `[[-Path] <String>]` 的含义
+
+双重方括号 `[[ ]]` 表示**位置参数的可选性**，这种格式通常用于有多个位置参数的命令。
+
+**详细说明：**
+- 外层方括号 `[ ]` 表示整个参数（包括参数名和参数值）是可选的
+- 内层方括号 `[-Path]` 表示参数名是可选的
+- `<String>` 表示参数值的类型
+
+**示例：**
+在 `Get-Help [-Name] <String> [[-Path] <String>]` 中：
+- `[-Name] <String>` 是第一个位置参数，参数名 `-Name` 可选，参数值是字符串类型
+- `[[-Path] <String>]` 是第二个位置参数，整个参数可选，参数名 `-Path` 可选，参数值是字符串类型
+
+**位置参数的使用方法：**
+1. 使用参数名：`Get-Help -Name "Get-Process" -Path "C:\Scripts"`
+2. 省略参数名（按位置）：`Get-Help "Get-Process" "C:\Scripts"`
+3. 省略可选参数：`Get-Help "Get-Process"`（只使用第一个参数）
+
+##### 尖括号 `<String>` 的含义
+
+尖括号 `< >` 表示**参数值的数据类型**。
+
+**常见的数据类型：**
+- `<String>`：字符串类型
+- `<Int32>`：32位整数类型
+- `<Boolean>`：布尔类型（True/False）
+- `<Object>`：对象类型
+- `<SwitchParameter>`：开关参数（不需要值，只要出现就表示True）
+
+**示例：**
+在 `Get-Help [-Name] <String>` 中：
+- `<String>` 表示 `-Name` 参数的值必须是字符串类型
+
+##### 开关参数 `-Full`、`-Online` 等
+
+不带尖括号的参数名，如 `-Full`、`-Online`、`-ShowWindow`，表示**开关参数**。
+
+**详细说明：**
+- 开关参数不需要值，只要在命令中出现就表示启用该功能
+- 开关参数通常用于启用命令的特定选项或模式
+
+**示例：**
+- `Get-Help Get-Process -Full`：显示完整的帮助信息
+- `Get-Help Get-Process -Online`：在浏览器中打开在线帮助
+- `Get-Help Get-Process -ShowWindow`：在新窗口中显示帮助信息
+
+##### 综合示例：Get-Help命令完整语法
+
+命令：`Get-Help [-Name] <String> [[-Path] <String>] [-Category <String[]>] [-Component <String[]>] [-Functionality <String[]>] [-Role <String[]>] [-Full] [-Online] [-ShowWindow]`
+
+**各部分解释：**
+1. `Get-Help`：命令名
+2. `[-Name] <String>`：第一个位置参数，参数名可选，值为字符串
+3. `[[-Path] <String>]`：第二个位置参数，整个参数可选，参数名可选，值为字符串
+4. `[-Category <String[]>]`：可选参数，参数名为 `-Category`，值为字符串数组
+5. `[-Component <String[]>]`：可选参数，参数名为 `-Component`，值为字符串数组
+6. `[-Functionality <String[]>]`：可选参数，参数名为 `-Functionality`，值为字符串数组
+7. `[-Role <String[]>]`：可选参数，参数名为 `-Role`，值为字符串数组
+8. `[-Full]`：开关参数，启用完整帮助
+9. `[-Online]`：开关参数，打开在线帮助
+10. `[-ShowWindow]`：开关参数，在新窗口显示帮助
+
+**使用示例：**
+```powershell
+# 使用参数名和位置参数
+Get-Help -Name "Get-Process" -Path "C:\Scripts" -Full
+
+# 省略参数名，按位置传递
+Get-Help "Get-Process" "C:\Scripts" -Online
+
+# 只使用必要的参数
+Get-Help "Get-Process"
+```
+
+##### PowerShell语法符号表
+
+| 符号 | 含义 | 示例 |
+|------|------|------|
+| `[ ]` | 可选参数 | `[-Name]` |
+| `[[ ]]` | 位置参数的可选性（整个参数可选，参数名也可选） | `[[-Path] <String>]` |
+| `< >` | 参数值的数据类型 | `<String>` |
+| `-` | 参数名前缀 | `-Name` |
+| 无尖括号的参数 | 开关参数 | `-Full` |
+
 ### 1.3 管道
 
 管道允许将一个命令的输出作为另一个命令的输入，使用 `|` 符号表示：
