@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术文档中心</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --sidebar-bg: #34495e;
+            --text-color: #333;
+            --border-color: #bdc3c7;
+            --hover-color: #ddd;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        #searchInput {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            overflow-y: auto;
+            padding: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        
+        .toggle-sidebar {
+            background-color: var(--sidebar-bg);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            border-radius: 4px;
+            z-index: 99;
+        }
+        
+        .doc-list {
+            list-style-type: none;
+        }
+        
+        .doc-list li {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .doc-list li:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .doc-list li.active {
+            background-color: var(--primary-color);
+        }
+        
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        #markdownContent {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        #noContent {
+            text-align: center;
+            color: #777;
+            font-style: italic;
+            padding: 2rem;
+        }
+        
+        /* Markdown 样式 */
+        #markdownContent h1,
+        #markdownContent h2,
+        #markdownContent h3 {
+            margin-top: 1.5em;
+            margin-bottom: 1em;
+            color: var(--secondary-color);
+        }
+        
+        #markdownContent h1 {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.3em;
+        }
+        
+        #markdownContent p {
+            margin-bottom: 1em;
+        }
+        
+        #markdownContent ul,
+        #markdownContent ol {
+            margin-left: 2em;
+            margin-bottom: 1em;
+        }
+        
+        #markdownContent li {
+            margin-bottom: 0.5em;
+        }
+        
+        #markdownContent pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1em;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        
+        #markdownContent code {
+            font-family: 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+        
+        #markdownContent pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        #markdownContent blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding: 0.5em 1em;
+            margin: 1em 0;
+            background-color: #f9f9f9;
+        }
+        
+        #markdownContent table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        
+        #markdownContent th,
+        #markdownContent td {
+            border: 1px solid #ddd;
+            padding: 0.5em;
+            text-align: left;
+        }
+        
+        #markdownContent th {
+            background-color: #f2f2f2;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>技术文档中心</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="搜索文档...">
+        </div>
+    </header>
+    
+    <button class="toggle-sidebar" id="toggleSidebar">目录</button>
+    
+    <div class="container">
+        <aside class="sidebar" id="sidebar">
+            <h2>文档列表</h2>
+            <ul class="doc-list" id="docList">
+                <!-- 文档列表将通过JavaScript动态生成 -->
+            </ul>
+        </aside>
+        
+        <main class="content">
+            <div id="markdownContent">
+                <div id="noContent">请选择一篇文档或搜索相关内容</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 文档数据 - 在实际应用中可以从服务器获取
+        const documents = [
+            { name: "示例文档", path: "example-document.md" },
+            { name: "技术选型与应用场景", path: "技术选型与应用场景.md" },
+            { name: "JPA", path: "backend/java/jpa/jpa.md" },
+            { name: "MyBatis", path: "backend/java/mybatis/mybatis.md" },
+            { name: "Netty", path: "backend/java/netty/netty.md" },
+            { name: "Spring WebFlux", path: "backend/java/spring-webflux/spring-webflux.md" },
+            { name: "Python JSON 配置", path: "backend/python/config/PythonJSON.md" },
+            { name: "Python YAML 配置", path: "backend/python/config/PythonYAML.md" },
+            { name: "Python Pandas DataFrame", path: "backend/python/data-processing/PythonPandasDataFrame.md" },
+            { name: "Python Requests", path: "backend/python/http-client/PythonRequests.md" },
+            { name: "Python Pip 管理", path: "backend/python/PythonPip管理.md" },
+            { name: "Python Venv 管理", path: "backend/python/PythonVenv管理.md" },
+            { name: "Python 基础概念", path: "backend/python/Python基础概念.md" },
+            { name: "Python 常用模块", path: "backend/python/Python常用模块.md" },
+            { name: "Python 常见问题", path: "backend/python/Python常见问题.md" },
+            { name: "Python 类与对象", path: "backend/python/Python类与对象.md" },
+            { name: "Python 语法", path: "backend/python/Python语法.md" },
+            { name: "AngularJS 基础概念", path: "frontend/angularjs/基础概念/基础概念.md" },
+            { name: "AngularJS 指令", path: "frontend/angularjs/指令/指令.md" },
+            { name: "CSS 动画与过渡", path: "frontend/css/动画与过渡/动画与过渡.md" },
+            { name: "CSS 响应式设计", path: "frontend/css/响应式设计/响应式设计.md" },
+            { name: "HTML 基础概念", path: "frontend/html/基础概念/基础概念.md" },
+            { name: "JavaScript DOM 操作", path: "frontend/javascript/DOM操作/DOM操作.md" },
+            { name: "JavaScript ES6 特性", path: "frontend/javascript/ES6特性/ES6特性.md" },
+            { name: "React Hooks", path: "frontend/react/ReactHooks.md" },
+            { name: "React 基础概念", path: "frontend/react/React基础概念.md" },
+            { name: "Git 基础", path: "tools/git/README.md" },
+            { name: "PowerShell 基础概念", path: "tools/powershell/PowerShell基础概念.md" },
+            { name: "PowerShell 语法", path: "tools/powershell/PowerShell语法.md" }
+        ];
+
+        // DOM 元素
+        const docListEl = document.getElementById('docList');
+        const searchInputEl = document.getElementById('searchInput');
+        const markdownContentEl = document.getElementById('markdownContent');
+        const sidebarEl = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const noContentEl = document.getElementById('noContent');
+
+        // 当前选中的文档
+        let currentDoc = null;
+
+        // 初始化文档列表
+        function initDocList(docs) {
+            docListEl.innerHTML = '';
+            docs.forEach((doc, index) => {
+                const li = document.createElement('li');
+                li.textContent = doc.name;
+                li.dataset.index = index;
+                li.addEventListener('click', () => loadDocument(index));
+                docListEl.appendChild(li);
+            });
+        }
+
+        // 加载并显示文档内容
+        async function loadDocument(index) {
+            const doc = documents[index];
+            currentDoc = doc;
+            
+            // 更新活动状态
+            document.querySelectorAll('.doc-list li').forEach((li, i) => {
+                if (i == index) {
+                    li.classList.add('active');
+                } else {
+                    li.classList.remove('active');
+                }
+            });
+            
+            // 显示加载状态
+            markdownContentEl.innerHTML = '<p>加载中...</p>';
+            
+            try {
+                // 获取 Markdown 文件内容
+                const response = await fetch(doc.path);
+                if (!response.ok) {
+                    throw new Error(`无法加载文档: ${response.status}`);
+                }
+                
+                const markdownText = await response.text();
+                
+                // 渲染 Markdown 内容
+                const htmlContent = renderMarkdown(markdownText);
+                markdownContentEl.innerHTML = htmlContent;
+                
+                // 滚动到顶部
+                markdownContentEl.scrollTop = 0;
+            } catch (error) {
+                markdownContentEl.innerHTML = `<p>加载文档时出错: ${error.message}</p>`;
+            }
+        }
+
+        // 简单的 Markdown 渲染函数
+        function renderMarkdown(markdown) {
+            // 处理代码块
+            markdown = markdown.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            
+            // 处理行内代码
+            markdown = markdown.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // 处理标题 (# H1, ## H2, ### H3)
+            markdown = markdown.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            markdown = markdown.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            markdown = markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            
+            // 处理无序列表
+            markdown = markdown.replace(/^\- (.*$)/gm, '<li>$1</li>');
+            markdown = markdown.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // 处理加粗
+            markdown = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 处理斜体
+            markdown = markdown.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 处理链接
+            markdown = markdown.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+            
+            // 处理段落
+            markdown = markdown.replace(/^(?!<[hul])/gm, '<p>');
+            markdown = markdown.replace(/<\/(h[1-6]|ul|ol|li|blockquote|pre)>/g, '</$1>\n');
+            
+            // 处理换行
+            markdown = markdown.replace(/\n/g, '<br>');
+            
+            return markdown;
+        }
+
+        // 搜索功能
+        function searchDocs(keyword) {
+            const filteredDocs = documents.filter(doc => 
+                doc.name.toLowerCase().includes(keyword.toLowerCase()) ||
+                doc.path.toLowerCase().includes(keyword.toLowerCase())
+            );
+            
+            initDocList(filteredDocs);
+            
+            // 如果当前文档不在搜索结果中，则清空内容区域
+            if (currentDoc && !filteredDocs.includes(currentDoc)) {
+                markdownContentEl.innerHTML = '<div id="noContent">请选择一篇文档或搜索相关内容</div>';
+                currentDoc = null;
+                document.querySelectorAll('.doc-list li').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        }
+
+        // 切换侧边栏显示/隐藏
+        function toggleSidebar() {
+            sidebarEl.classList.toggle('hidden');
+        }
+
+        // 事件监听器
+        searchInputEl.addEventListener('input', (e) => {
+            searchDocs(e.target.value);
+        });
+
+        toggleSidebarBtn.addEventListener('click', toggleSidebar);
+
+        // 初始化
+        initDocList(documents);
+    </script>
+</body>
+</html>
