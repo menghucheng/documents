@@ -209,7 +209,11 @@ print("-".join(parts))  # 输出: Hello-World!
 # 去除空白
 str2 = "   Hello   "
 print(str2.strip())   # 输出: Hello
+<<<<<<< HEAD
 print(str2.lstrip())  # 输出: Hello
+=======
+print(str2.lstrip())  # 输出: Hello   
+>>>>>>> ed00cb006c80991fe7d62a19e0082f4099e3e3de
 print(str2.rstrip())  # 输出:    Hello
 
 # 检查前缀和后缀
