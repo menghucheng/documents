@@ -1,0 +1,20 @@
+title: 文档中心
+collections:
+  docs:
+    output: true
+markdown: kramdown
+kramdown:
+  input: GFM
+permalink: /:collection/:path.html
+exclude:
+  - README.md
+  - package.json
+  - node_modules
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .git
+  - .github
+  - dev-tools
+  - refactor-*.ps1
+  - index.html
