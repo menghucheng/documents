@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档查看器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="doc-title">正在加载...</h1>
+        <a href="index.html">← 返回首页</a>
+    </div>
+    <div id="content" class="content">
+        正在加载文档...
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filePath = urlParams.get('file');
+            
+            if (!filePath) {
+                document.getElementById('content').innerHTML = '<p style="color: red;">错误：未指定文件路径</p>';
+                return;
+            }
+
+            // 设置文档标题
+            document.getElementById('doc-title').textContent = filePath.split('/').pop().replace('.md', '');
+            
+            // 获取并渲染Markdown文件
+            fetch(filePath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('文件不存在');
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    document.getElementById('content').innerHTML = marked.parse(text);
+                })
+                .catch(error => {
+                    document.getElementById('content').innerHTML = `<p style="color: red;">${error.message}：${filePath}</p>`;
+                });
+        });
+    </script>
+</body>
+</html>

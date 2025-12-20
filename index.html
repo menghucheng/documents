@@ -49,132 +49,292 @@
             border-radius: 5px;
             overflow-x: auto;
         }
+        /* 搜索功能样式 */
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        #searchInput {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-results {
+            margin-top: 10px;
+            text-align: left;
+        }
+        .search-result-item {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .search-result-item:hover {
+            background-color: #f5f5f5;
+        }
     </style>
 </head>
 <body>
     <h1>技术文档中心</h1>
     <p>欢迎访问技术文档中心，这里包含了前端、后端和工具链的完整文档。</p>
 
+    <!-- 搜索功能 -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="搜索文档...">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
     <div class="tech-section">
         <h2>后端技术</h2>
         
         <h3>Python</h3>
-        <a href="backend/python/Python基础概念.md" class="doc-link">Python基础概念</a>
-        <a href="backend/python/Python语法.md" class="doc-link">Python语法</a>
-        <a href="backend/python/Python类与对象.md" class="doc-link">Python类与对象</a>
-        <a href="backend/python/Python常用模块.md" class="doc-link">Python常用模块</a>
-        <a href="backend/python/Python高级功能.md" class="doc-link">Python高级功能</a>
-        <a href="backend/python/Python源码理解指南.md" class="doc-link">Python源码理解指南</a>
-        <a href="backend/python/Python项目架构.md" class="doc-link">Python项目架构</a>
-        <a href="backend/python/config/PythonJSON.md" class="doc-link">PythonJSON处理</a>
-        <a href="backend/python/config/PythonYAML.md" class="doc-link">PythonYAML处理</a>
-        <a href="backend/python/data-processing/PythonPandasDataFrame.md" class="doc-link">PythonPandasDataFrame</a>
-        <a href="backend/python/http-client/PythonRequests.md" class="doc-link">PythonRequests</a>
+        <a href="viewer.html?file=backend/python/Python基础概念.md" class="doc-link">Python基础概念</a>
+        <a href="viewer.html?file=backend/python/Python语法.md" class="doc-link">Python语法</a>
+        <a href="viewer.html?file=backend/python/Python类与对象.md" class="doc-link">Python类与对象</a>
+        <a href="viewer.html?file=backend/python/Python常用模块.md" class="doc-link">Python常用模块</a>
+        <a href="viewer.html?file=backend/python/Python高级功能.md" class="doc-link">Python高级功能</a>
+        <a href="viewer.html?file=backend/python/Python源码理解指南.md" class="doc-link">Python源码理解指南</a>
+        <a href="viewer.html?file=backend/python/Python项目架构.md" class="doc-link">Python项目架构</a>
+        <a href="viewer.html?file=backend/python/config/PythonJSON.md" class="doc-link">PythonJSON处理</a>
+        <a href="viewer.html?file=backend/python/config/PythonYAML.md" class="doc-link">PythonYAML处理</a>
+        <a href="viewer.html?file=backend/python/data-processing/PythonPandasDataFrame.md" class="doc-link">PythonPandasDataFrame</a>
+        <a href="viewer.html?file=backend/python/http-client/PythonRequests.md" class="doc-link">PythonRequests</a>
         
         <h3>Java</h3>
-        <a href="backend/java/jpa.md" class="doc-link">JPA框架</a>
-        <a href="backend/java/mybatis.md" class="doc-link">MyBatis框架</a>
-        <a href="backend/java/netty.md" class="doc-link">Netty框架</a>
-        <a href="backend/java/spring-webflux.md" class="doc-link">Spring WebFlux</a>
+        <a href="viewer.html?file=backend/java/jpa.md" class="doc-link">JPA框架</a>
+        <a href="viewer.html?file=backend/java/mybatis.md" class="doc-link">MyBatis框架</a>
+        <a href="viewer.html?file=backend/java/netty.md" class="doc-link">Netty框架</a>
+        <a href="viewer.html?file=backend/java/spring-webflux.md" class="doc-link">Spring WebFlux</a>
         
         <h3>Node.js</h3>
-        <a href="backend/nodejs/nodejs.md" class="doc-link">Node.js完整学习指南</a>
+        <a href="viewer.html?file=backend/nodejs/nodejs.md" class="doc-link">Node.js完整学习指南</a>
     </div>
 
     <div class="tech-section">
         <h2>前端技术</h2>
         
         <h3>HTML</h3>
-        <a href="frontend/html/基础概念.md" class="doc-link">HTML基础概念</a>
-        <a href="frontend/html/标签与元素.md" class="doc-link">HTML标签与元素</a>
-        <a href="frontend/html/表单.md" class="doc-link">HTML表单</a>
-        <a href="frontend/html/语义化HTML.md" class="doc-link">语义化HTML</a>
+        <a href="viewer.html?file=frontend/html/基础概念.md" class="doc-link">HTML基础概念</a>
+        <a href="viewer.html?file=frontend/html/标签与元素.md" class="doc-link">HTML标签与元素</a>
+        <a href="viewer.html?file=frontend/html/表单.md" class="doc-link">HTML表单</a>
+        <a href="viewer.html?file=frontend/html/语义化HTML.md" class="doc-link">语义化HTML</a>
         
         <h3>CSS</h3>
-        <a href="frontend/css/基础概念.md" class="doc-link">CSS基础概念</a>
-        <a href="frontend/css/语法.md" class="doc-link">CSS语法</a>
-        <a href="frontend/css/盒模型.md" class="doc-link">CSS盒模型</a>
-        <a href="frontend/css/布局.md" class="doc-link">CSS布局</a>
-        <a href="frontend/css/响应式设计.md" class="doc-link">CSS响应式设计</a>
-        <a href="frontend/css/动画与过渡.md" class="doc-link">CSS动画与过渡</a>
+        <a href="viewer.html?file=frontend/css/基础概念.md" class="doc-link">CSS基础概念</a>
+        <a href="viewer.html?file=frontend/css/语法.md" class="doc-link">CSS语法</a>
+        <a href="viewer.html?file=frontend/css/盒模型.md" class="doc-link">CSS盒模型</a>
+        <a href="viewer.html?file=frontend/css/布局.md" class="doc-link">CSS布局</a>
+        <a href="viewer.html?file=frontend/css/响应式设计.md" class="doc-link">CSS响应式设计</a>
+        <a href="viewer.html?file=frontend/css/动画与过渡.md" class="doc-link">CSS动画与过渡</a>
         
         <h3>JavaScript</h3>
-        <a href="frontend/javascript/基础概念.md" class="doc-link">JavaScript基础概念</a>
-        <a href="frontend/javascript/语法.md" class="doc-link">JavaScript语法</a>
-        <a href="frontend/javascript/ES6特性.md" class="doc-link">JavaScript ES6特性</a>
-        <a href="frontend/javascript/DOM操作.md" class="doc-link">JavaScript DOM操作</a>
-        <a href="frontend/javascript/异步编程.md" class="doc-link">JavaScript异步编程</a>
+        <a href="viewer.html?file=frontend/javascript/基础概念.md" class="doc-link">JavaScript基础概念</a>
+        <a href="viewer.html?file=frontend/javascript/语法.md" class="doc-link">JavaScript语法</a>
+        <a href="viewer.html?file=frontend/javascript/ES6特性.md" class="doc-link">JavaScript ES6特性</a>
+        <a href="viewer.html?file=frontend/javascript/DOM操作.md" class="doc-link">JavaScript DOM操作</a>
+        <a href="viewer.html?file=frontend/javascript/异步编程.md" class="doc-link">JavaScript异步编程</a>
         
         <h3>框架与库</h3>
-        <a href="frontend/react/React基础概念.md" class="doc-link">React基础概念</a>
-        <a href="frontend/react/React组件.md" class="doc-link">React组件</a>
-        <a href="frontend/react/ReactHooks.md" class="doc-link">React Hooks</a>
-        <a href="frontend/react/React路由.md" class="doc-link">React路由</a>
-        <a href="frontend/react/React状态管理.md" class="doc-link">React状态管理</a>
-        <a href="frontend/react/React性能优化.md" class="doc-link">React性能优化</a>
-        <a href="frontend/react/React最佳实践.md" class="doc-link">React最佳实践</a>
-        <a href="frontend/angularjs/基础概念.md" class="doc-link">AngularJS基础概念</a>
-        <a href="frontend/nextjs/基础概念.md" class="doc-link">Next.js基础概念</a>
-        <a href="frontend/nextjs/API路由.md" class="doc-link">Next.js API路由</a>
-        <a href="frontend/nextjs/数据获取.md" class="doc-link">Next.js数据获取</a>
-        <a href="frontend/nextjs/路由.md" class="doc-link">Next.js路由</a>
-        <a href="frontend/nextjs/部署.md" class="doc-link">Next.js部署</a>
-        <a href="frontend/tailwindcss/tailwindcss.md" class="doc-link">Tailwind CSS</a>
+        <a href="viewer.html?file=frontend/react/React基础概念.md" class="doc-link">React基础概念</a>
+        <a href="viewer.html?file=frontend/react/React组件.md" class="doc-link">React组件</a>
+        <a href="viewer.html?file=frontend/react/ReactHooks.md" class="doc-link">React Hooks</a>
+        <a href="viewer.html?file=frontend/react/React路由.md" class="doc-link">React路由</a>
+        <a href="viewer.html?file=frontend/react/React状态管理.md" class="doc-link">React状态管理</a>
+        <a href="viewer.html?file=frontend/react/React性能优化.md" class="doc-link">React性能优化</a>
+        <a href="viewer.html?file=frontend/react/React最佳实践.md" class="doc-link">React最佳实践</a>
+        <a href="viewer.html?file=frontend/angularjs/基础概念.md" class="doc-link">AngularJS基础概念</a>
+        <a href="viewer.html?file=frontend/nextjs/基础概念.md" class="doc-link">Next.js基础概念</a>
+        <a href="viewer.html?file=frontend/nextjs/API路由.md" class="doc-link">Next.js API路由</a>
+        <a href="viewer.html?file=frontend/nextjs/数据获取.md" class="doc-link">Next.js数据获取</a>
+        <a href="viewer.html?file=frontend/nextjs/路由.md" class="doc-link">Next.js路由</a>
+        <a href="viewer.html?file=frontend/nextjs/部署.md" class="doc-link">Next.js部署</a>
+        <a href="viewer.html?file=frontend/tailwindcss/tailwindcss.md" class="doc-link">Tailwind CSS</a>
         
         <h3>前端工具</h3>
-        <a href="frontend/tools/ant-design.md" class="doc-link">Ant Design</a>
-        <a href="frontend/tools/authjs.md" class="doc-link">Auth.js</a>
-        <a href="frontend/tools/bootstrap.md" class="doc-link">Bootstrap</a>
-        <a href="frontend/tools/npm.md" class="doc-link">npm</a>
-        <a href="frontend/tools/pnpm.md" class="doc-link">pnpm</a>
-        <a href="frontend/tools/prisma.md" class="doc-link">Prisma</a>
+        <a href="viewer.html?file=frontend/tools/ant-design.md" class="doc-link">Ant Design</a>
+        <a href="viewer.html?file=frontend/tools/authjs.md" class="doc-link">Auth.js</a>
+        <a href="viewer.html?file=frontend/tools/bootstrap.md" class="doc-link">Bootstrap</a>
+        <a href="viewer.html?file=frontend/tools/npm.md" class="doc-link">npm</a>
+        <a href="viewer.html?file=frontend/tools/pnpm.md" class="doc-link">pnpm</a>
+        <a href="viewer.html?file=frontend/tools/prisma.md" class="doc-link">Prisma</a>
         
         <h3>Markdown</h3>
-        <a href="frontend/markdown/markdown.md" class="doc-link">Markdown</a>
-        <a href="frontend/markdown/基础语法.md" class="doc-link">Markdown基础语法</a>
-        <a href="frontend/markdown/最佳实践.md" class="doc-link">Markdown最佳实践</a>
-        <a href="frontend/markdown/高级用法.md" class="doc-link">Markdown高级用法</a>
+        <a href="viewer.html?file=frontend/markdown/markdown.md" class="doc-link">Markdown</a>
+        <a href="viewer.html?file=frontend/markdown/基础语法.md" class="doc-link">Markdown基础语法</a>
+        <a href="viewer.html?file=frontend/markdown/最佳实践.md" class="doc-link">Markdown最佳实践</a>
+        <a href="viewer.html?file=frontend/markdown/高级用法.md" class="doc-link">Markdown高级用法</a>
         
         <h3>微信小程序</h3>
-        <a href="frontend/wechat-miniprogram/基础概念.md" class="doc-link">微信小程序基础概念</a>
-        <a href="frontend/wechat-miniprogram/组件.md" class="doc-link">微信小程序组件</a>
-        <a href="frontend/wechat-miniprogram/API.md" class="doc-link">微信小程序API</a>
+        <a href="viewer.html?file=frontend/wechat-miniprogram/基础概念.md" class="doc-link">微信小程序基础概念</a>
+        <a href="viewer.html?file=frontend/wechat-miniprogram/组件.md" class="doc-link">微信小程序组件</a>
+        <a href="viewer.html?file=frontend/wechat-miniprogram/API.md" class="doc-link">微信小程序API</a>
     </div>
 
     <div class="tech-section">
         <h2>工具链</h2>
         
         <h3>开发工具</h3>
-        <a href="tools/vscode/基础概念.md" class="doc-link">VS Code</a>
+        <a href="viewer.html?file=tools/vscode/基础概念.md" class="doc-link">VS Code</a>
         
         <h3>版本控制</h3>
-        <a href="tools/git/基础概念.md" class="doc-link">Git基础概念</a>
-        <a href="tools/git/基本操作.md" class="doc-link">Git基本操作</a>
-        <a href="tools/git/分支管理.md" class="doc-link">Git分支管理</a>
-        <a href="tools/git/安装与配置.md" class="doc-link">Git安装与配置</a>
-        <a href="tools/git/工作流.md" class="doc-link">Git工作流</a>
-        <a href="tools/git/常见问题.md" class="doc-link">Git常见问题</a>
-        <a href="tools/git/远程仓库.md" class="doc-link">Git远程仓库</a>
-        <a href="tools/git/高级操作.md" class="doc-link">Git高级操作</a>
+        <a href="viewer.html?file=tools/git/基础概念.md" class="doc-link">Git基础概念</a>
+        <a href="viewer.html?file=tools/git/基本操作.md" class="doc-link">Git基本操作</a>
+        <a href="viewer.html?file=tools/git/分支管理.md" class="doc-link">Git分支管理</a>
+        <a href="viewer.html?file=tools/git/安装与配置.md" class="doc-link">Git安装与配置</a>
+        <a href="viewer.html?file=tools/git/工作流.md" class="doc-link">Git工作流</a>
+        <a href="viewer.html?file=tools/git/常见问题.md" class="doc-link">Git常见问题</a>
+        <a href="viewer.html?file=tools/git/远程仓库.md" class="doc-link">Git远程仓库</a>
+        <a href="viewer.html?file=tools/git/高级操作.md" class="doc-link">Git高级操作</a>
         
         <h3>CI/CD</h3>
-        <a href="tools/jenkins/Jenkins基础概念.md" class="doc-link">Jenkins基础概念</a>
-        <a href="tools/jenkins/Jenkins Pipeline配置.md" class="doc-link">Jenkins Pipeline配置</a>
+        <a href="viewer.html?file=tools/jenkins/Jenkins基础概念.md" class="doc-link">Jenkins基础概念</a>
+        <a href="viewer.html?file=tools/jenkins/Jenkins Pipeline配置.md" class="doc-link">Jenkins Pipeline配置</a>
         
         <h3>容器与部署</h3>
-        <a href="tools/docker/docker.md" class="doc-link">Docker</a>
-        <a href="tools/nginx/nginx.md" class="doc-link">Nginx</a>
-        <a href="tools/caddy/caddy.md" class="doc-link">Caddy</a>
+        <a href="viewer.html?file=tools/docker/docker.md" class="doc-link">Docker</a>
+        <a href="viewer.html?file=tools/nginx/nginx.md" class="doc-link">Nginx</a>
+        <a href="viewer.html?file=tools/caddy/caddy.md" class="doc-link">Caddy</a>
         
         <h3>脚本与自动化</h3>
-        <a href="tools/shell/Shell基础概念.md" class="doc-link">Shell脚本</a>
-        <a href="tools/powershell/PowerShell基础概念.md" class="doc-link">PowerShell</a>
-        <a href="tools/bat/Batch基础概念.md" class="doc-link">Batch脚本</a>
+        <a href="viewer.html?file=tools/shell/Shell基础概念.md" class="doc-link">Shell脚本</a>
+        <a href="viewer.html?file=tools/powershell/PowerShell基础概念.md" class="doc-link">PowerShell</a>
+        <a href="viewer.html?file=tools/bat/Batch基础概念.md" class="doc-link">Batch脚本</a>
     </div>
 
     <div class="tech-section">
         <h2>技术选型</h2>
-        <a href="技术选型与应用场景.md" class="doc-link">技术选型与应用场景</a>
+        <a href="viewer.html?file=技术选型与应用场景.md" class="doc-link">技术选型与应用场景</a>
     </div>
+
+    <!-- 搜索功能脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            // 创建文档索引
+            const documents = [
+                { title: 'Python基础概念', path: 'backend/python/Python基础概念.md' },
+                { title: 'Python语法', path: 'backend/python/Python语法.md' },
+                { title: 'Python类与对象', path: 'backend/python/Python类与对象.md' },
+                { title: 'Python常用模块', path: 'backend/python/Python常用模块.md' },
+                { title: 'Python高级功能', path: 'backend/python/Python高级功能.md' },
+                { title: 'Python源码理解指南', path: 'backend/python/Python源码理解指南.md' },
+                { title: 'Python项目架构', path: 'backend/python/Python项目架构.md' },
+                { title: 'PythonJSON处理', path: 'backend/python/config/PythonJSON.md' },
+                { title: 'PythonYAML处理', path: 'backend/python/config/PythonYAML.md' },
+                { title: 'PythonPandasDataFrame', path: 'backend/python/data-processing/PythonPandasDataFrame.md' },
+                { title: 'PythonRequests', path: 'backend/python/http-client/PythonRequests.md' },
+                { title: 'JPA框架', path: 'backend/java/jpa.md' },
+                { title: 'MyBatis框架', path: 'backend/java/mybatis.md' },
+                { title: 'Netty框架', path: 'backend/java/netty.md' },
+                { title: 'Spring WebFlux', path: 'backend/java/spring-webflux.md' },
+                { title: 'Node.js完整学习指南', path: 'backend/nodejs/nodejs.md' },
+                { title: 'HTML基础概念', path: 'frontend/html/基础概念.md' },
+                { title: 'HTML标签与元素', path: 'frontend/html/标签与元素.md' },
+                { title: 'HTML表单', path: 'frontend/html/表单.md' },
+                { title: '语义化HTML', path: 'frontend/html/语义化HTML.md' },
+                { title: 'CSS基础概念', path: 'frontend/css/基础概念.md' },
+                { title: 'CSS语法', path: 'frontend/css/语法.md' },
+                { title: 'CSS盒模型', path: 'frontend/css/盒模型.md' },
+                { title: 'CSS布局', path: 'frontend/css/布局.md' },
+                { title: 'CSS响应式设计', path: 'frontend/css/响应式设计.md' },
+                { title: 'CSS动画与过渡', path: 'frontend/css/动画与过渡.md' },
+                { title: 'JavaScript基础概念', path: 'frontend/javascript/基础概念.md' },
+                { title: 'JavaScript语法', path: 'frontend/javascript/语法.md' },
+                { title: 'JavaScript ES6特性', path: 'frontend/javascript/ES6特性.md' },
+                { title: 'JavaScript DOM操作', path: 'frontend/javascript/DOM操作.md' },
+                { title: 'JavaScript异步编程', path: 'frontend/javascript/异步编程.md' },
+                { title: 'React基础概念', path: 'frontend/react/React基础概念.md' },
+                { title: 'React组件', path: 'frontend/react/React组件.md' },
+                { title: 'React Hooks', path: 'frontend/react/ReactHooks.md' },
+                { title: 'React路由', path: 'frontend/react/React路由.md' },
+                { title: 'React状态管理', path: 'frontend/react/React状态管理.md' },
+                { title: 'React性能优化', path: 'frontend/react/React性能优化.md' },
+                { title: 'React最佳实践', path: 'frontend/react/React最佳实践.md' },
+                { title: 'AngularJS基础概念', path: 'frontend/angularjs/基础概念.md' },
+                { title: 'Next.js基础概念', path: 'frontend/nextjs/基础概念.md' },
+                { title: 'Next.js API路由', path: 'frontend/nextjs/API路由.md' },
+                { title: 'Next.js数据获取', path: 'frontend/nextjs/数据获取.md' },
+                { title: 'Next.js路由', path: 'frontend/nextjs/路由.md' },
+                { title: 'Next.js部署', path: 'frontend/nextjs/部署.md' },
+                { title: 'Tailwind CSS', path: 'frontend/tailwindcss/tailwindcss.md' },
+                { title: 'Ant Design', path: 'frontend/tools/ant-design.md' },
+                { title: 'Auth.js', path: 'frontend/tools/authjs.md' },
+                { title: 'Bootstrap', path: 'frontend/tools/bootstrap.md' },
+                { title: 'npm', path: 'frontend/tools/npm.md' },
+                { title: 'pnpm', path: 'frontend/tools/pnpm.md' },
+                { title: 'Prisma', path: 'frontend/tools/prisma.md' },
+                { title: 'Markdown', path: 'frontend/markdown/markdown.md' },
+                { title: 'Markdown基础语法', path: 'frontend/markdown/基础语法.md' },
+                { title: 'Markdown最佳实践', path: 'frontend/markdown/最佳实践.md' },
+                { title: 'Markdown高级用法', path: 'frontend/markdown/高级用法.md' },
+                { title: '微信小程序基础概念', path: 'frontend/wechat-miniprogram/基础概念.md' },
+                { title: '微信小程序组件', path: 'frontend/wechat-miniprogram/组件.md' },
+                { title: '微信小程序API', path: 'frontend/wechat-miniprogram/API.md' },
+                { title: 'VS Code', path: 'tools/vscode/基础概念.md' },
+                { title: 'Git基础概念', path: 'tools/git/基础概念.md' },
+                { title: 'Git基本操作', path: 'tools/git/基本操作.md' },
+                { title: 'Git分支管理', path: 'tools/git/分支管理.md' },
+                { title: 'Git安装与配置', path: 'tools/git/安装与配置.md' },
+                { title: 'Git工作流', path: 'tools/git/工作流.md' },
+                { title: 'Git常见问题', path: 'tools/git/常见问题.md' },
+                { title: 'Git远程仓库', path: 'tools/git/远程仓库.md' },
+                { title: 'Git高级操作', path: 'tools/git/高级操作.md' },
+                { title: 'Jenkins基础概念', path: 'tools/jenkins/Jenkins基础概念.md' },
+                { title: 'Jenkins Pipeline配置', path: 'tools/jenkins/Jenkins Pipeline配置.md' },
+                { title: 'Docker', path: 'tools/docker/docker.md' },
+                { title: 'Nginx', path: 'tools/nginx/nginx.md' },
+                { title: 'Caddy', path: 'tools/caddy/caddy.md' },
+                { title: 'Shell脚本', path: 'tools/shell/Shell基础概念.md' },
+                { title: 'PowerShell', path: 'tools/powershell/PowerShell基础概念.md' },
+                { title: 'Batch脚本', path: 'tools/bat/Batch基础概念.md' },
+                { title: '技术选型与应用场景', path: '技术选型与应用场景.md' }
+            ];
+            
+            // 实时搜索功能
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim().toLowerCase();
+                
+                if (query === '') {
+                    searchResults.innerHTML = '';
+                    return;
+                }
+                
+                // 搜索匹配的文档
+                const matches = documents.filter(doc => 
+                    doc.title.toLowerCase().includes(query) || 
+                    doc.path.toLowerCase().includes(query)
+                );
+                
+                // 显示搜索结果
+                if (matches.length > 0) {
+                    searchResults.innerHTML = matches.map(doc => 
+                        `<div class="search-result-item" onclick="window.location.href='viewer.html?file=${doc.path}'">
+                            ${doc.title}
+                            <br><small style="color: #666;">${doc.path}</small>
+                        </div>`
+                    ).join('');
+                } else {
+                    searchResults.innerHTML = '<div class="search-result-item" style="color: gray;">未找到相关文档</div>';
+                }
+            });
+            
+            // 点击页面其他地方隐藏搜索结果
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    searchResults.innerHTML = '';
+                    searchInput.value = '';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
