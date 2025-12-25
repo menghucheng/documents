@@ -26,39 +26,47 @@
             display: flex;
             gap: 30px;
         }
-        /* 新增：右侧悬浮目录样式 */
+        /* 修复：优化目录样式 */
         .toc {
-            width: 250px;
+            width: 280px;
             position: sticky;
             top: 20px;
             align-self: flex-start;
-            padding-left: 15px;
-            border-left: 1px solid #eaeaea;
+            padding: 0 15px 0 0;
+            border-right: 1px solid #eaeaea;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
         .toc ul {
             list-style: none;
-            padding-left: 10px;
+            padding-left: 0;
+            margin: 0;
         }
         .toc a {
             color: #0066cc;
             text-decoration: none;
             display: block;
-            padding: 3px 0;
-            font-size: 0.95rem;
+            padding: 5px 0;
         }
         .toc a:hover {
             text-decoration: underline;
         }
+        /* 修复：移除异常编号 */
         .toc li {
-            margin: 5px 0;
+            margin: 0;
         }
-        /* 移动端隐藏目录 */
+        .toc li::before {
+            content: none;
+        }
         @media (max-width: 768px) {
             .content-container {
                 flex-direction: column;
             }
             .toc {
-                display: none;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #eaeaea;
+                padding: 15px 0;
             }
         }
     </style>
@@ -68,12 +76,12 @@
         <h1 id="doc-title">正在加载...</h1>
         <a href="index.html">← 返回首页</a>
     </div>
-    <!-- 修改：添加内容容器和目录区域 -->
+    <!-- 修复：目录位置调整到左侧 -->
     <div class="content-container">
+        <div id="toc" class="toc"></div>
         <div id="content" class="content">
             正在加载文档...
         </div>
-        <div id="toc" class="toc"></div>
     </div>
 
     <script>
@@ -86,10 +94,8 @@
                 return;
             }
 
-            // 设置文档标题
             document.getElementById('doc-title').textContent = filePath.split('/').pop().replace('.md', '');
             
-            // 获取并渲染Markdown文件
             fetch(filePath)
                 .then(response => {
                     if (!response.ok) {
@@ -98,27 +104,46 @@
                     return response.text();
                 })
                 .then(text => {
-                    document.getElementById('content').innerHTML = marked.parse(text);
-                    
-                    // 新增：初始化代码高亮
-                    Prism.highlightAll();
-                    
-                    // 新增：生成目录
-                    tocbot.init({
-                        tocSelector: '#toc',
-                        contentSelector: '.content',
-                        headingSelector: 'h1, h2, h3',
-                        hasInnerContainers: true,
+                    // 修复：强制保留代码块语言标识
+                    const html = marked.parse(text, {
+                        gfm: true,
+                        breaks: true,
+                        smartLists: true,
+                        langPrefix: 'language-'
                     });
+                    
+                    document.getElementById('content').innerHTML = html;
+                    
+                    // 修复：确保Prism正确初始化
+                    if (typeof Prism !== 'undefined') {
+                        Prism.highlightAll();
+                    }
+                    
+                    // 修复：优化目录配置
+                    if (typeof tocbot !== 'undefined') {
+                        tocbot.init({
+                            tocSelector: '#toc',
+                            contentSelector: '.content',
+                            headingSelector: 'h1, h2, h3',
+                            hasInnerContainers: true,
+                            scrollSmooth: true,
+                            // 修复：移除异常编号
+                            orderedList: false,
+                            headingsOffset: 100
+                        });
+                    }
                 })
                 .catch(error => {
                     document.getElementById('content').innerHTML = `<p style="color: red;">${error.message}：${filePath}</p>`;
                 });
         });
     </script>
-    <!-- 新增：引入Prism.js和tocbot库 -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // 修复：强制Prism加载所有语言
+        Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/tocbot@4.23.0/dist/tocbot.min.js"></script>
 </body>
 </html>
