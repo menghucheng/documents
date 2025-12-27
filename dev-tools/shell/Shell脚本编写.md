@@ -10,7 +10,20 @@
   # 或
   #!/usr/bin/env bash
   ```
-- 脚本编码推荐使用 UTF-8，支持中文
+- **中文编码处理**：
+  - 推荐使用 UTF-8 编码保存脚本文件
+  - 在脚本开头添加编码声明（可选，但推荐）：
+    ```bash
+    # 确保脚本使用 UTF-8 编码
+    export LANG="zh_CN.UTF-8"
+    export LC_ALL="zh_CN.UTF-8"
+    ```
+  - 在 Windows 系统上，确保终端使用 UTF-8 编码：
+    ```bash
+    # 在 PowerShell 中设置 UTF-8
+    chcp 65001
+    ```
+  - 在 Linux/macOS 上，确保终端配置为 UTF-8 编码
 
 ### 1.2 脚本注释
 - 单行注释：使用 `#` 开头
@@ -782,9 +795,148 @@ ame="张三"
 grep "张" <<< "$name"
 ```
 
-## 8. 脚本调试
+## 8. 用户输入处理
 
-### 8.1 调试模式
+### 8.1 基本输入
+使用 `read` 命令获取用户输入：
+
+```bash
+# 基本文本输入
+read -p "请输入你的姓名：" name
+echo "你好，$name！"
+
+# 数字输入（需要验证）
+read -p "请输入你的年龄：" age
+echo "你今年 $age 岁了。"
+
+# 不显示输入提示
+read -p "请按 Enter 键继续..." -t 5  # -t 5 表示 5 秒超时
+
+# 隐藏输入（用于密码）
+read -s -p "请输入密码：" password
+echo -e "\n密码已输入。"
+```
+
+### 8.2 输入验证
+
+```bash
+# 验证数字输入
+function get_valid_age {
+    local age
+    while true; do
+        read -p "请输入你的年龄：" age
+        if [[ $age =~ ^[0-9]+$ ]] && [ "$age" -ge 0 ] && [ "$age" -le 120 ]; then
+            echo "$age"
+            return 0
+        fi
+        echo "年龄必须是 0 到 120 之间的数字，请重新输入。" >&2
+    done
+}
+
+valid_age=$(get_valid_age)
+echo "你今年 $valid_age 岁了。"
+
+# 验证字符串输入
+function get_valid_name {
+    local name
+    while true; do
+        read -p "请输入你的姓名：" name
+        if [[ $name =~ ^[\p{Han}a-zA-Z]{2,20}$ ]]; then
+            echo "$name"
+            return 0
+        fi
+        echo "姓名必须是 2-20 个中文字符或英文字母，请重新输入。" >&2
+    done
+}
+
+valid_name=$(get_valid_name)
+echo "你好，$valid_name！"
+```
+
+### 8.3 交互式菜单
+
+```bash
+#!/bin/bash
+
+function show_menu {
+    echo "=== 主菜单 ==="
+    echo "1. 查看系统信息"
+    echo "2. 备份文件"
+    echo "3. 清理临时文件"
+    echo "4. 退出"
+    echo "============="
+}
+
+function show_system_info {
+    echo "=== 系统信息 ==="
+    uname -a
+    echo "CPU 信息："
+    cat /proc/cpuinfo | grep "model name" | head -1
+    echo "内存信息："
+    free -h
+}
+
+function backup_files {
+    echo "=== 文件备份 ==="
+    read -p "请输入源目录路径：" source
+    read -p "请输入目标目录路径：" dest
+    echo "开始备份 $source 到 $dest..."
+    # 这里可以添加实际的备份逻辑
+}
+
+function clean_temp_files {
+    echo "=== 清理临时文件 ==="
+    echo "开始清理临时文件..."
+    # 这里可以添加实际的清理逻辑
+}
+
+# 主循环
+while true; do
+    show_menu
+    read -p "请选择操作（1-4）：" choice
+    
+    case $choice in
+        1) show_system_info ;;
+        2) backup_files ;;
+        3) clean_temp_files ;;
+        4) echo "再见！"; exit 0 ;;
+        *) echo "无效选择，请重新输入。" >&2 ;;
+    esac
+    
+    echo -e "\n按 Enter 键继续..."
+    read -n 1
+    echo -e "\n"
+done
+```
+
+### 8.4 批量输入处理
+
+```bash
+#!/bin/bash
+
+# 从文件读取输入
+function read_from_file {
+    local file="$1"
+    while IFS= read -r line; do
+        echo "读取到行：$line"
+    done < "$file"
+}
+
+# 从管道读取输入
+function read_from_pipe {
+    echo "请输入多行文本，按 Ctrl+D 结束："
+    while IFS= read -r line; do
+        echo "你输入了：$line"
+    done
+}
+
+# 示例使用
+read_from_pipe
+```
+
+## 9. 脚本调试
+
+### 9.1 调试模式
 - 使用 `bash -x script.sh` 运行脚本，显示执行的每个命令
 - 在脚本中使用 `set -x` 启用调试模式，`set +x` 禁用调试模式
 - 使用 `bash -n script.sh` 检查脚本语法错误
@@ -807,15 +959,15 @@ set +x
 echo "调试模式已禁用：这行命令不会显示"
 ```
 
-### 8.2 调试技巧
+### 9.2 调试技巧
 - 在关键位置添加 `echo` 语句，输出变量值
 - 使用 `set -u` 检测未定义变量
 - 使用 `set -e` 命令失败时自动退出
 - 使用 `trap` 命令捕获错误
 
-## 9. 脚本模块化
+## 10. 脚本模块化
 
-### 9.1 包含其他脚本
+### 10.1 包含其他脚本
 使用 `source` 或 `.` 命令包含其他脚本：
 
 ```bash
@@ -825,7 +977,7 @@ source ./lib/utils.sh
 . ./lib/utils.sh
 ```
 
-### 9.2 函数库
+### 10.2 函数库
 创建函数库文件，然后在多个脚本中包含使用：
 
 **示例**：
@@ -872,40 +1024,40 @@ check_file "input.txt"
 log "INFO" "脚本执行完成"
 ```
 
-## 10. 最佳实践
+## 11. 最佳实践
 
-### 10.1 脚本命名
+### 11.1 脚本命名
 - 使用有意义的名称，描述脚本功能
 - 使用小写字母和下划线，避免使用空格和特殊字符
 - 以 `.sh` 为扩展名
 
-### 10.2 注释
+### 11.2 注释
 - 在脚本开头添加脚本描述、作者、版本、创建日期等信息
 - 为复杂逻辑添加注释
 - 为函数添加注释，说明功能、参数和返回值
 
-### 10.3 错误处理
+### 11.3 错误处理
 - 使用 `set -e` 和 `set -u` 提高脚本健壮性
 - 检查命令执行结果
 - 提供清晰的错误信息
 - 使用 `trap` 命令进行清理操作
 
-### 10.4 安全性
+### 11.4 安全性
 - 避免使用硬编码的密码和敏感信息
 - 验证用户输入
 - 使用绝对路径
 - 避免使用 `eval` 命令（存在安全风险）
 - 对文件路径和变量进行引号包裹，避免空格问题
 
-### 10.5 性能优化
+### 11.5 性能优化
 - 减少外部命令调用（外部命令比内部命令慢）
 - 使用数组代替字符串拼接
 - 避免在循环中使用 `echo` 等命令
 - 使用 `read` 命令代替 `cat` 命令读取文件
 
-## 11. 示例脚本
+## 12. 示例脚本
 
-### 11.1 文件备份脚本
+### 12.1 文件备份脚本
 ```bash
 #!/bin/bash
 
@@ -978,7 +1130,7 @@ find "$BACKUP_DIR" -name "backup_*.tar.gz" -mtime +7 -delete
 echo "备份完成！"
 ```
 
-### 11.2 系统监控脚本
+### 12.2 系统监控脚本
 ```bash
 #!/bin/bash
 
@@ -1082,7 +1234,7 @@ function main {
 main
 ```
 
-### 11.3 日志分析脚本
+### 12.3 日志分析脚本
 ```bash
 #!/bin/bash
 
@@ -1166,7 +1318,7 @@ function main {
 main
 ```
 
-## 12. 资源推荐
+## 13. 资源推荐
 
 - [Bash 官方文档](https://www.gnu.org/software/bash/manual/)
 - [Shell Scripting Tutorial](https://www.shellscript.sh/)

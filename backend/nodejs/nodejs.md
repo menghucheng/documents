@@ -598,6 +598,110 @@ docker run -p 3000:3000 my-node-app
 - 查找占用端口的进程：`lsof -i :3000`（macOS/Linux）或 `netstat -ano | findstr :3000`（Windows）
 - 终止占用端口的进程：`kill -9 <PID>`（macOS/Linux）或 `taskkill /PID <PID> /F`（Windows）
 - 使用不同的端口启动服务器
+- 使用 Node.js 代码查找和终止占用端口的进程：
+
+```javascript
+const { exec } = require('child_process');
+const os = require('os');
+
+function killProcessUsingPort(port) {
+  const platform = os.platform();
+  let command;
+  
+  if (platform === 'win32') {
+    // Windows
+    command = `netstat -ano | findstr :${port}`;
+    exec(command, (err, stdout) => {
+      if (err) {
+        console.error('查找进程失败:', err);
+        return;
+      }
+      
+      const lines = stdout.trim().split('\n');
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        const pid = lastLine.trim().split(/\s+/).pop();
+        exec(`taskkill /PID ${pid} /F`, (err) => {
+          if (err) {
+            console.error('终止进程失败:', err);
+          } else {
+            console.log(`已终止占用端口 ${port} 的进程，PID: ${pid}`);
+          }
+        });
+      } else {
+        console.log(`端口 ${port} 未被占用`);
+      }
+    });
+  } else {
+    // macOS/Linux
+    command = `lsof -t -i :${port}`;
+    exec(command, (err, stdout) => {
+      if (err) {
+        console.log(`端口 ${port} 未被占用`);
+        return;
+      }
+      
+      const pid = stdout.trim();
+      if (pid) {
+        exec(`kill -9 ${pid}`, (err) => {
+          if (err) {
+            console.error('终止进程失败:', err);
+          } else {
+            console.log(`已终止占用端口 ${port} 的进程，PID: ${pid}`);
+          }
+        });
+      } else {
+        console.log(`端口 ${port} 未被占用`);
+      }
+    });
+  }
+}
+
+// 使用示例
+killProcessUsingPort(3000);
+```
+
+- 使用 Node.js 代码自动查找可用端口：
+
+```javascript
+const net = require('net');
+
+function findAvailablePort(startPort = 3000, maxPort = 9000) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        if (startPort < maxPort) {
+          server.close();
+          findAvailablePort(startPort + 1, maxPort).then(resolve).catch(reject);
+        } else {
+          reject(new Error('没有找到可用端口'));
+        }
+      } else {
+        reject(err);
+      }
+    });
+    
+    server.on('listening', () => {
+      server.close();
+      resolve(startPort);
+    });
+    
+    server.listen(startPort);
+  });
+}
+
+// 使用示例
+findAvailablePort(3000)
+  .then(port => {
+    console.log(`找到可用端口: ${port}`);
+    // 在这里启动你的服务器，使用找到的端口
+  })
+  .catch(err => {
+    console.error('查找端口失败:', err);
+  });
+```
 
 ### 12.2 依赖冲突
 
@@ -619,6 +723,107 @@ docker run -p 3000:3000 my-node-app
 - 使用 heapdump 或 clinic 等工具分析内存使用情况
 - 避免全局变量累积
 - 正确关闭资源（如数据库连接、文件流）
+
+## 13. Excel 处理
+
+### 13.1 使用 SheetJS 处理 Excel 文件
+
+SheetJS 是 Node.js 中最流行的 Excel 处理库，支持读取和写入 Excel 文件。
+
+#### 13.1.1 安装 SheetJS
+
+```bash
+npm install xlsx
+```
+
+#### 13.1.2 读取 Excel 文件
+
+```javascript
+const XLSX = require('xlsx');
+
+// 读取 Excel 文件
+const workbook = XLSX.readFile('data.xlsx');
+
+// 获取工作表名称
+const sheetNames = workbook.SheetNames;
+
+// 获取第一个工作表
+const worksheet = workbook.Sheets[sheetNames[0]];
+
+// 将工作表转换为 JSON
+const data = XLSX.utils.sheet_to_json(worksheet);
+
+console.log(data);
+```
+
+#### 13.1.3 写入 Excel 文件
+
+```javascript
+const XLSX = require('xlsx');
+
+// 示例数据
+const data = [
+  { Name: '张三', Age: 25, City: '北京' },
+  { Name: '李四', Age: 30, City: '上海' },
+  { Name: '王五', Age: 28, City: '广州' }
+];
+
+// 创建工作表
+const worksheet = XLSX.utils.json_to_sheet(data);
+
+// 创建工作簿
+const workbook = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+// 写入文件
+XLSX.writeFile(workbook, 'output.xlsx');
+
+console.log('Excel 文件已生成');
+```
+
+#### 13.1.4 读取指定工作表
+
+```javascript
+const XLSX = require('xlsx');
+
+// 读取 Excel 文件
+const workbook = XLSX.readFile('data.xlsx');
+
+// 获取指定名称的工作表
+const worksheet = workbook.Sheets['Sheet2'];
+
+// 将工作表转换为 JSON
+const data = XLSX.utils.sheet_to_json(worksheet);
+
+console.log(data);
+```
+
+#### 13.1.5 处理大型 Excel 文件
+
+对于大型 Excel 文件，可以使用流式读取来提高性能：
+
+```javascript
+const XLSX = require('xlsx');
+const fs = require('fs');
+
+// 读取文件内容
+const fileContent = fs.readFileSync('large_file.xlsx');
+
+// 解析文件
+const workbook = XLSX.read(fileContent, { type: 'buffer' });
+
+// 获取工作表
+const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+// 转换为 JSON，使用流式处理
+const data = XLSX.utils.sheet_to_json(worksheet, {
+  header: 1, // 第一行作为标题
+  defval: '', // 空单元格的默认值
+  blankrows: false // 跳过空行
+});
+
+console.log(`共读取 ${data.length} 行数据`);
+```
 
 ## 13. 学习资源
 

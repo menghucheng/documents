@@ -4,11 +4,19 @@
 
 ### 1.1 脚本文件格式
 - PowerShell 脚本文件扩展名为 `.ps1`
-- 脚本第一行通常是解释器声明（可选）：
+- 脚本第一行通常是解释器声明（可选，主要用于 Linux/macOS）：
   ```powershell
   #!/usr/bin/env pwsh
   ```
-- 脚本编码推荐使用 UTF-8，支持中文
+- **中文编码处理**：
+  - PowerShell Core (pwsh) 默认使用 UTF-8 编码，完全支持中文
+  - Windows PowerShell 默认使用 UTF-16LE 编码，建议显式设置为 UTF-8
+  - 在脚本开头添加编码声明（可选，但推荐）：
+    ```powershell
+    # 确保使用 UTF-8 编码
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    ```
 
 ### 1.2 脚本注释
 - 单行注释：使用 `#` 开头
@@ -296,6 +304,131 @@ if ($Verbose) {
 }
 ```
 
+## 7. 用户输入处理
+
+### 7.1 基本输入
+使用 `Read-Host` 命令获取用户输入：
+
+```powershell
+# 基本文本输入
+$name = Read-Host "请输入你的姓名"
+Write-Host "你好，$name！"
+
+# 数字输入（需要转换类型）
+$age = Read-Host "请输入你的年龄"
+$age = [int]$age  # 转换为整数类型
+Write-Host "你今年 $age 岁了。"
+```
+
+### 7.2 密码输入（隐藏输入）
+使用 `Read-Host -AsSecureString` 命令获取隐藏的密码输入：
+
+```powershell
+# 密码输入
+$securePassword = Read-Host "请输入密码" -AsSecureString
+
+# 将安全字符串转换为普通字符串（谨慎使用）
+$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+    [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+)
+Write-Host "你输入的密码是：$password"
+```
+
+### 7.3 输入验证
+```powershell
+# 验证数字输入
+function Get-ValidAge {
+    while ($true) {
+        $age = Read-Host "请输入你的年龄"
+        if ([int]::TryParse($age, [ref]$null) -and $age -ge 0 -and $age -le 120) {
+            return [int]$age
+        }
+        Write-Host "年龄必须是 0 到 120 之间的数字，请重新输入。" -ForegroundColor Red
+    }
+}
+
+$validAge = Get-ValidAge
+Write-Host "你今年 $validAge 岁了。"
+
+# 验证字符串输入
+function Get-ValidName {
+    while ($true) {
+        $name = Read-Host "请输入你的姓名"
+        if ($name -match '^[\p{Han}a-zA-Z]{2,20}$') {
+            return $name
+        }
+        Write-Host "姓名必须是 2-20 个中文字符或英文字母，请重新输入。" -ForegroundColor Red
+    }
+}
+
+$validName = Get-ValidName
+Write-Host "你好，$validName！"
+```
+
+### 7.4 交互式菜单
+使用 `switch` 和 `Read-Host` 创建简单的交互式菜单：
+
+```powershell
+function Show-Menu {
+    Write-Host "=== 主菜单 ===" -ForegroundColor Green
+    Write-Host "1. 查看系统信息"
+    Write-Host "2. 备份文件"
+    Write-Host "3. 清理临时文件"
+    Write-Host "4. 退出"
+    Write-Host "============="
+}
+
+function Show-SystemInfo {
+    Write-Host "=== 系统信息 ==="
+    Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object Caption, Version
+}
+
+function Backup-Files {
+    Write-Host "=== 文件备份 ==="
+    $source = Read-Host "请输入源目录路径"
+    $dest = Read-Host "请输入目标目录路径"
+    Write-Host "开始备份 $source 到 $dest..."
+    # 这里可以添加实际的备份逻辑
+}
+
+function Clean-TempFiles {
+    Write-Host "=== 清理临时文件 ==="
+    Write-Host "开始清理临时文件..."
+    # 这里可以添加实际的清理逻辑
+}
+
+# 主循环
+while ($true) {
+    Show-Menu
+    $choice = Read-Host "请选择操作（1-4）"
+    
+    switch ($choice) {
+        "1" {
+            Show-SystemInfo
+        }
+        "2" {
+            Backup-Files
+        }
+        "3" {
+            Clean-TempFiles
+        }
+        "4" {
+            Write-Host "再见！" -ForegroundColor Green
+            break
+        }
+        default {
+            Write-Host "无效选择，请重新输入。" -ForegroundColor Red
+        }
+    }
+    
+    if ($choice -eq "4") {
+        break
+    }
+    
+    Read-Host "按 Enter 键继续..."  # 暂停，等待用户按 Enter 键
+}
+```
+
 ### 6.2 参数验证
 ```powershell
 param(
@@ -321,16 +454,16 @@ param(
 )
 ```
 
-## 7. 脚本模块化
+## 8. 脚本模块化
 
-### 7.1 模块结构
+### 8.1 模块结构
 PowerShell 模块通常包含：
 - 模块清单文件（`.psd1`）
 - 模块脚本文件（`.psm1`）
 - 帮助文件
 - 示例文件
 
-### 7.2 创建简单模块
+### 8.2 创建简单模块
 1. 创建模块脚本文件 `MyModule.psm1`：
    ```powershell
    # MyModule.psm1
@@ -356,15 +489,15 @@ PowerShell 模块通常包含：
    Get-Goodbye
    ```
 
-## 8. 脚本最佳实践
+## 9. 脚本最佳实践
 
-### 8.1 命名规范
+### 9.1 命名规范
 - 脚本名：使用 PascalCase，如 `Backup-Data.ps1`
 - 函数名：使用 Verb-Noun 格式，如 `Get-Content`
 - 变量名：使用驼峰命名法，如 `$backupPath`
 - 常量名：使用全大写，如 `$MAX_RETRY_COUNT = 5`
 
-### 8.2 注释规范
+### 9.2 注释规范
 - 为复杂逻辑添加注释
 - 为函数添加帮助文档
 - 为脚本添加说明
@@ -393,20 +526,20 @@ PowerShell 模块通常包含：
 #>
 ```
 
-### 8.3 错误处理
+### 9.3 错误处理
 - 始终使用 `try-catch` 处理可能的错误
 - 使用 `ErrorAction` 参数控制错误处理方式
 - 记录详细的错误信息
 
-### 8.4 性能优化
+### 9.4 性能优化
 - 减少管道使用，尤其是在循环中
 - 避免在循环中使用 `Write-Host`
 - 使用变量存储重复计算的结果
 - 对于大文件处理，使用流式处理
 
-## 9. 示例脚本
+## 10. 示例脚本
 
-### 9.1 文件备份脚本
+### 10.1 文件备份脚本
 ```powershell
 <#
 .SYNOPSIS
@@ -456,7 +589,7 @@ try {
 }
 ```
 
-### 9.2 系统信息收集脚本
+### 10.2 系统信息收集脚本
 ```powershell
 <#
 .SYNOPSIS
@@ -502,9 +635,9 @@ function Get-SystemInfo {
 Get-SystemInfo
 ```
 
-## 10. 调试技巧
+## 11. 调试技巧
 
-### 10.1 输出调试信息
+### 11.1 输出调试信息
 ```powershell
 # 使用 Write-Debug 输出调试信息
 $DebugPreference = "Continue"
@@ -516,7 +649,7 @@ param()
 Write-Verbose "这是详细信息" -Verbose
 ```
 
-### 10.2 使用断点
+### 11.2 使用断点
 1. 在 PowerShell ISE 中设置断点：点击行号左侧
 2. 在 VS Code 中设置断点：安装 PowerShell 扩展后，点击行号左侧
 3. 使用 `Set-PSBreakpoint` 命令设置断点：
@@ -524,10 +657,10 @@ Write-Verbose "这是详细信息" -Verbose
    Set-PSBreakpoint -Script .\脚本名.ps1 -Line 10
    ```
 
-### 10.3 查看变量值
+### 11.3 查看变量值
 在调试模式下，可以使用 `$变量名` 查看变量当前值，或使用 `Get-Variable` 查看所有变量。
 
-## 11. 资源推荐
+## 12. 资源推荐
 
 - [PowerShell 脚本编写最佳实践](https://docs.microsoft.com/zh-cn/powershell/scripting/developer/cmdlet/best-practices-for-writing-powershell-scripts?view=powershell-7.2)
 - [PowerShell 函数编写指南](https://docs.microsoft.com/zh-cn/powershell/scripting/developer/cmdlet/writing-a-windows-powershell-cmdlet?view=powershell-7.2)

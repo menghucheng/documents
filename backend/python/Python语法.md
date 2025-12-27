@@ -1297,9 +1297,293 @@ with my_context_manager():
     print("Inside context")
 ```
 
-## 17. 总结
+## 17. Excel 处理
 
-Python 语法简洁明了，易于学习和使用。本文介绍了 Python 的基本语法、数据类型、流程控制、函数、类与对象、模块与包、异常处理、文件操作以及高级特性。
+Python 提供了多种库来处理 Excel 文件，其中最常用的是 `pandas`，它提供了强大的数据处理和分析功能。此外，还有 `openpyxl`、`xlrd`、`xlsxwriter` 等库用于不同格式的 Excel 文件处理。
+
+### 17.1 使用 pandas 处理 Excel 文件
+
+`pandas` 是 Python 数据分析的核心库，可以轻松读取、处理和写入 Excel 文件。
+
+#### 17.1.1 安装 pandas
+
+```bash
+pip install pandas openpyxl xlrd
+```
+
+#### 17.1.2 读取 Excel 文件
+
+```python
+import pandas as pd
+
+# 读取 Excel 文件（支持 .xls 和 .xlsx 格式）
+# 读取第一个工作表
+df = pd.read_excel('data.xlsx')
+
+# 读取指定工作表
+df = pd.read_excel('data.xlsx', sheet_name='Sheet2')
+
+# 读取多个工作表
+dfs = pd.read_excel('data.xlsx', sheet_name=['Sheet1', 'Sheet2'])
+
+# 查看数据前 5 行
+print(df.head())
+
+# 查看数据基本信息
+print(df.info())
+
+# 查看数据统计信息
+print(df.describe())
+```
+
+#### 17.1.3 处理 Excel 数据
+
+```python
+import pandas as pd
+
+# 读取数据
+df = pd.read_excel('data.xlsx')
+
+# 选择列
+name_column = df['姓名']
+age_column = df['年龄']
+
+# 筛选数据（年龄大于 30 的行）
+filtered_df = df[df['年龄'] > 30]
+
+# 排序数据（按年龄降序）
+sorted_df = df.sort_values(by='年龄', ascending=False)
+
+# 添加新列
+df['出生年份'] = 2023 - df['年龄']
+
+# 修改数据
+df.loc[df['姓名'] == '张三', '年龄'] = 35
+
+# 删除列
+df = df.drop('出生年份', axis=1)
+
+# 处理缺失值
+# 填充缺失值
+df = df.fillna(0)
+# 删除包含缺失值的行
+df = df.dropna()
+```
+
+#### 17.1.4 写入 Excel 文件
+
+```python
+import pandas as pd
+
+# 创建示例数据
+data = {
+    '姓名': ['张三', '李四', '王五'],
+    '年龄': [25, 30, 35],
+    '城市': ['北京', '上海', '广州']
+}
+df = pd.DataFrame(data)
+
+# 写入 Excel 文件
+# 写入单个工作表
+df.to_excel('output.xlsx', index=False)  # index=False 表示不写入索引列
+
+# 写入多个工作表
+with pd.ExcelWriter('output.xlsx') as writer:
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    df.to_excel(writer, sheet_name='Sheet2', index=False)
+
+# 设置单元格样式
+from openpyxl.styles import Font, Color, Alignment
+
+with pd.ExcelWriter('styled_output.xlsx', engine='openpyxl') as writer:
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    
+    # 获取工作簿和工作表对象
+    workbook = writer.book
+    worksheet = writer.sheets['Sheet1']
+    
+    # 设置标题行样式
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+    
+    for cell in worksheet[1]:  # 第一行是标题行
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+```
+
+### 17.2 使用其他库处理 Excel
+
+#### 17.2.1 使用 openpyxl 处理 .xlsx 文件
+
+`openpyxl` 是一个用于读取和写入 Excel 2010 xlsx/xlsm/xltx/xltm 文件的库。
+
+```python
+from openpyxl import Workbook
+from openpyxl import load_workbook
+
+# 创建新工作簿
+wb = Workbook()
+ws = wb.active
+
+# 写入数据
+ws['A1'] = '姓名'
+ws['B1'] = '年龄'
+ws['A2'] = '张三'
+ws['B2'] = 25
+
+# 保存文件
+wb.save('example.xlsx')
+
+# 读取现有文件
+wb = load_workbook('example.xlsx')
+ws = wb.active
+
+# 读取数据
+name = ws['A2'].value
+age = ws['B2'].value
+print(f'姓名：{name}, 年龄：{age}')
+
+# 遍历行
+for row in ws.iter_rows(min_row=1, max_col=2, max_row=2):
+    for cell in row:
+        print(cell.value)
+```
+
+#### 17.2.2 使用 xlsxwriter 写入 Excel 文件
+
+`xlsxwriter` 是一个用于创建 Excel .xlsx 文件的 Python 库。
+
+```python
+import xlsxwriter
+
+# 创建工作簿
+workbook = xlsxwriter.Workbook('xlsxwriter_example.xlsx')
+worksheet = workbook.add_worksheet()
+
+# 写入数据
+worksheet.write('A1', '姓名')
+worksheet.write('B1', '年龄')
+worksheet.write('A2', '张三')
+worksheet.write('B2', 25)
+
+# 写入数字和公式
+worksheet.write(2, 0, '李四')  # 行索引从 0 开始
+worksheet.write(2, 1, 30)
+worksheet.write(3, 0, '王五')
+worksheet.write(3, 1, 35)
+
+# 写入公式（计算平均年龄）
+worksheet.write(4, 0, '平均年龄')
+worksheet.write(4, 1, '=AVERAGE(B2:B4)')
+
+# 关闭工作簿
+workbook.close()
+```
+
+## 18. 常见问题解决方案
+
+### 18.1 端口占用解决方案
+
+在开发过程中，经常会遇到端口被占用的问题。以下是几种解决方法：
+
+#### 18.1.1 查找占用端口的进程
+
+使用 `lsof` 命令（Linux/macOS）或 `netstat` 命令（Windows）查找占用特定端口的进程：
+
+```bash
+# Linux/macOS
+lsof -i :8000
+
+# Windows
+netstat -ano | findstr :8000
+```
+
+#### 18.1.2 使用 Python 查找和终止占用端口的进程
+
+```python
+import os
+import platform
+import subprocess
+
+def kill_process_using_port(port):
+    """
+    查找并终止占用指定端口的进程
+    """
+    system = platform.system()
+    
+    try:
+        if system == "Windows":
+            # Windows 系统
+            # 查找占用端口的进程 ID
+            cmd = f"netstat -ano | findstr :{port}"
+            result = subprocess.check_output(cmd, shell=True).decode()
+            pid = result.split()[-1]
+            
+            # 终止进程
+            subprocess.run(f"taskkill /PID {pid} /F", shell=True, check=True)
+            print(f"已终止占用端口 {port} 的进程，PID: {pid}")
+        else:
+            # Linux/macOS 系统
+            # 查找占用端口的进程 ID
+            cmd = f"lsof -t -i :{port}"
+            pid = subprocess.check_output(cmd, shell=True).decode().strip()
+            
+            if pid:
+                # 终止进程
+                subprocess.run(f"kill -9 {pid}", shell=True, check=True)
+                print(f"已终止占用端口 {port} 的进程，PID: {pid}")
+            else:
+                print(f"端口 {port} 未被占用")
+    except subprocess.CalledProcessError:
+        print(f"无法终止占用端口 {port} 的进程")
+    except Exception as e:
+        print(f"发生错误: {e}")
+
+# 使用示例
+kill_process_using_port(8000)
+```
+
+#### 18.1.3 在 Python 中使用不同的端口
+
+在开发服务器或网络应用时，可以通过代码指定一个可用端口：
+
+```python
+import socket
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+def find_available_port(start_port=8000, max_port=9000):
+    """
+    查找从 start_port 开始的第一个可用端口
+    """
+    for port in range(start_port, max_port):
+        try:
+            # 尝试绑定端口
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind(("localhost", port))
+            s.close()
+            return port
+        except OSError:
+            continue
+    return None
+
+# 使用示例
+available_port = find_available_port()
+if available_port:
+    print(f"找到可用端口: {available_port}")
+    # 启动 HTTP 服务器
+    server_address = ("localhost", available_port)
+    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
+    print(f"服务器启动在 http://localhost:{available_port}")
+    httpd.serve_forever()
+else:
+    print("未找到可用端口")
+```
+
+## 18. 总结
+
+Python 语法简洁明了，易于学习和使用。本文介绍了 Python 的基本语法、数据类型、流程控制、函数、类与对象、模块与包、异常处理、文件操作、高级特性以及常见问题解决方案。
 
 通过掌握这些语法知识，可以编写各种 Python 程序，从简单的脚本到复杂的应用。Python 拥有丰富的标准库和第三方库，可以帮助开发者快速实现各种功能，提高开发效率。
 

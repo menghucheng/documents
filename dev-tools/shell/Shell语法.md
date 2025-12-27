@@ -758,7 +758,280 @@ set -euxo pipefail
 9. **处理错误**：检查命令执行结果，提供清晰的错误信息
 10. **使用版本控制**：将脚本存储在 Git 等版本控制系统中
 
-## 13. 资源推荐
+## 13. 常见问题解决方案
+
+### 13.1 端口占用解决方案
+
+在开发过程中，经常会遇到端口被占用的问题。以下是几种解决方法：
+
+#### 13.1.1 查找占用端口的进程
+
+```bash
+# Linux/macOS
+lsof -i :8000
+
+# 只显示进程 ID
+lsof -t -i :8000
+
+# Windows
+netstat -ano | findstr :8000
+```
+
+#### 13.1.2 终止占用端口的进程
+
+```bash
+# Linux/macOS
+kill -9 $(lsof -t -i :8000)
+
+# Windows
+# 先查找 PID，然后终止进程
+taskkill /PID <PID> /F
+```
+
+#### 13.1.3 使用脚本查找和终止占用端口的进程
+
+```bash
+#!/bin/bash
+
+# 终止占用指定端口的进程
+kill_port() {
+    local port=$1
+    local pid
+    
+    if command -v lsof &> /dev/null; then
+        # Linux/macOS
+        pid=$(lsof -t -i :$port)
+        if [ -n "$pid" ]; then
+            kill -9 "$pid"
+            echo "已终止占用端口 $port 的进程，PID: $pid"
+        else
+            echo "端口 $port 未被占用"
+        fi
+    elif command -v netstat &> /dev/null; then
+        # Windows
+        pid=$(netstat -ano | findstr :$port | awk '{print $5}' | head -n 1)
+        if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+            taskkill /PID "$pid" /F
+            echo "已终止占用端口 $port 的进程，PID: $pid"
+        else
+            echo "端口 $port 未被占用"
+        fi
+    else
+        echo "无法检测端口占用情况，缺少 lsof 或 netstat 命令"
+    fi
+}
+
+# 使用示例
+kill_port 8000
+```
+
+#### 13.1.4 自动查找可用端口
+
+```bash
+#!/bin/bash
+
+# 查找可用端口
+find_available_port() {
+    local start_port=${1:-8000}
+    local max_port=${2:-9000}
+    local port
+    
+    for port in $(seq "$start_port" "$max_port"); do
+        if ! lsof -i :"$port" &> /dev/null; then
+            echo "$port"
+            return 0
+        fi
+    done
+    
+    echo ""  # 未找到可用端口
+    return 1
+}
+
+# 使用示例
+available_port=$(find_available_port 8000 9000)
+if [ -n "$available_port" ]; then
+    echo "找到可用端口: $available_port"
+    # 在这里启动你的服务，使用找到的端口
+else
+    echo "没有找到可用端口"
+fi
+```
+
+## 14. Excel 处理
+
+### 14.1 使用 xlsx2csv 转换 Excel 文件
+
+```bash
+# 安装 xlsx2csv
+sudo apt-get install xlsx2csv  # Debian/Ubuntu
+brew install xlsx2csv          # macOS
+
+# 将 Excel 文件转换为 CSV
+xlsx2csv input.xlsx output.csv
+
+# 指定工作表
+xlsx2csv input.xlsx -s 2 output.csv  # 使用第 2 个工作表
+
+# 使用工作表名称
+xlsx2csv input.xlsx -n "Sheet2" output.csv
+```
+
+### 14.2 使用 Python 脚本处理 Excel 文件
+
+```bash
+#!/bin/bash
+
+# 创建一个 Python 脚本来处理 Excel 文件
+cat > excel_processor.py << 'EOF'
+import pandas as pd
+
+# 读取 Excel 文件
+df = pd.read_excel('input.xlsx')
+
+# 筛选数据
+filtered_df = df[df['Age'] > 25]
+
+# 写入 CSV
+filtered_df.to_csv('output.csv', index=False)
+EOF
+
+# 运行脚本
+python3 excel_processor.py
+```
+
+### 14.3 使用 LibreOffice 命令行转换 Excel 文件
+
+```bash
+# 将 Excel 文件转换为 CSV
+libreoffice --headless --convert-to csv input.xlsx
+
+# 指定输出目录
+libreoffice --headless --convert-to csv input.xlsx --outdir /path/to/output
+```
+
+## 15. HTTP 请求与 OAuth2.0
+
+### 15.1 使用 curl 发送 HTTP 请求
+
+```bash
+# 发送 GET 请求
+curl https://api.example.com/data
+
+# 发送 POST 请求
+curl -X POST -H "Content-Type: application/json" -d '{"name":"张三","age":25}' https://api.example.com/users
+
+# 保存响应到文件
+curl -o response.json https://api.example.com/data
+```
+
+### 15.2 OAuth2.0 认证
+
+#### 15.2.1 获取 OAuth2.0 令牌
+
+```bash
+#!/bin/bash
+
+# 获取 OAuth2.0 令牌
+get_oauth2_token() {
+    local client_id="$1"
+    local client_secret="$2"
+    local token_endpoint="$3"
+    local scope="$4"
+    
+    local response
+    response=$(curl -s -X POST "$token_endpoint" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "grant_type=client_credentials" \
+        -d "client_id=$client_id" \
+        -d "client_secret=$client_secret" \
+        -d "scope=$scope")
+    
+    # 解析 JSON 响应，提取访问令牌
+    # 需要安装 jq 工具
+    if command -v jq &> /dev/null; then
+        echo "$response" | jq -r '.access_token'
+    else
+        # 不使用 jq，使用 grep 和 sed 解析
+        echo "$response" | grep -o '"access_token":"[^"]*"' | sed 's/"access_token":"\(.*\)"/\1/'
+    fi
+}
+
+# 使用示例
+client_id="your-client-id"
+client_secret="your-client-secret"
+token_endpoint="https://auth.example.com/token"
+scope="read write"
+
+access_token=$(get_oauth2_token "$client_id" "$client_secret" "$token_endpoint" "$scope")
+echo "访问令牌: $access_token"
+```
+
+#### 15.2.2 使用 OAuth2.0 令牌发送请求
+
+```bash
+#!/bin/bash
+
+# 使用获取到的令牌发送请求
+send_authenticated_request() {
+    local access_token="$1"
+    local url="$2"
+    local method="${3:-GET}"
+    local body="${4:-}"
+    
+    if [ -n "$body" ]; then
+        curl -s -X "$method" "$url" \
+            -H "Authorization: Bearer $access_token" \
+            -H "Content-Type: application/json" \
+            -d "$body"
+    else
+        curl -s -X "$method" "$url" \
+            -H "Authorization: Bearer $access_token"
+    fi
+}
+
+# 使用示例
+access_token="your-access-token"
+url="https://api.example.com/protected-resource"
+
+response=$(send_authenticated_request "$access_token" "$url")
+echo "响应: $response"
+```
+
+#### 15.2.3 解析 JSON 响应
+
+```bash
+#!/bin/bash
+
+# 解析 JSON 响应，需要安装 jq 工具
+parse_json_response() {
+    local response="$1"
+    local jq_query="$2"
+    
+    if command -v jq &> /dev/null; then
+        echo "$response" | jq -r "$jq_query"
+    else
+        echo "错误: jq 工具未安装"
+        return 1
+    fi
+}
+
+# 使用示例
+response='{"status":"success","data":{"count":10,"items":[{"id":1,"name":"张三"},{"id":2,"name":"李四"}]}}'
+
+# 解析状态
+status=$(parse_json_response "$response" ".status")
+echo "状态: $status"
+
+# 解析数据数量
+count=$(parse_json_response "$response" ".data.count")
+echo "数据数量: $count"
+
+# 解析第一个项目的名称
+first_item_name=$(parse_json_response "$response" ".data.items[0].name")
+echo "第一个项目名称: $first_item_name"
+```
+
+## 16. 资源推荐
 
 - [Bash 官方文档](https://www.gnu.org/software/bash/manual/)
 - [Shell Scripting Tutorial](https://www.shellscript.sh/)

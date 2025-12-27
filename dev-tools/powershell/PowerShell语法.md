@@ -613,8 +613,217 @@ $ErrorActionPreference = "Stop"
 Get-Content "C:\nonexistent.txt"  # 发生错误时停止执行
 ```
 
-## 10. 总结
+## 10. 常见问题解决方案
 
-PowerShell 语法基于 .NET，结合了命令行和脚本语言的特点。本文介绍了 PowerShell 的基本语法、变量、数据类型、运算符、流程控制语句、函数、脚本块、模块和错误处理等内容。
+### 10.1 端口占用解决方案
 
-掌握 PowerShell 语法是使用 PowerShell 进行自动化和配置管理的基础。通过学习和实践，可以逐步掌握 PowerShell 的强大功能，实现复杂的自动化任务。
+在开发过程中，经常会遇到端口被占用的问题。以下是几种解决方法：
+
+#### 10.1.1 查找占用端口的进程
+
+使用 PowerShell 查找占用特定端口的进程：
+
+```powershell
+# 查找占用端口 8000 的进程
+Get-NetTCPConnection -LocalPort 8000 | Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, State, OwningProcess
+
+# 查看进程详细信息
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Select-Object Id, ProcessName, Path
+```
+
+#### 10.1.2 终止占用端口的进程
+
+```powershell
+# 终止占用端口 8000 的进程
+$processId = (Get-NetTCPConnection -LocalPort 8000).OwningProcess
+if ($processId) {
+    Stop-Process -Id $processId -Force
+    Write-Host "已终止占用端口 8000 的进程，PID: $processId"
+} else {
+    Write-Host "端口 8000 未被占用"
+}
+```
+
+#### 10.1.3 自动查找可用端口
+
+```powershell
+function Find-AvailablePort {
+    param (
+        [int]$StartPort = 8000,
+        [int]$MaxPort = 9000
+    )
+    
+    for ($port = $StartPort; $port -le $MaxPort; $port++) {
+        $tcpListener = $null
+        try {
+            $tcpListener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $port)
+            $tcpListener.Start()
+            return $port
+        } catch {
+            # 端口已被占用，继续尝试下一个端口
+        } finally {
+            if ($tcpListener) {
+                $tcpListener.Stop()
+            }
+        }
+    }
+    
+    return $null
+}
+
+# 使用示例
+$availablePort = Find-AvailablePort
+if ($availablePort) {
+    Write-Host "找到可用端口: $availablePort"
+    # 在这里启动你的服务，使用找到的端口
+} else {
+    Write-Host "没有找到可用端口"
+}
+```
+
+## 11. Excel 处理
+
+### 11.1 使用 ImportExcel 模块处理 Excel 文件
+
+ImportExcel 是 PowerShell 中处理 Excel 文件的强大模块，基于 EPPlus 库。
+
+#### 11.1.1 安装 ImportExcel 模块
+
+```powershell
+# 安装 ImportExcel 模块
+Install-Module -Name ImportExcel -Scope CurrentUser
+```
+
+#### 11.1.2 读取 Excel 文件
+
+```powershell
+# 读取 Excel 文件
+$excelData = Import-Excel -Path "C:\path\to\data.xlsx"
+
+# 显示数据
+$excelData | Format-Table
+
+# 读取指定工作表
+$excelData = Import-Excel -Path "C:\path\to\data.xlsx" -WorksheetName "Sheet2"
+
+# 读取指定范围
+$excelData = Import-Excel -Path "C:\path\to\data.xlsx" -StartRow 2 -EndRow 100
+```
+
+#### 11.1.3 写入 Excel 文件
+
+```powershell
+# 示例数据
+$data = @(
+    @{ Name = "张三"; Age = 25; City = "北京" },
+    @{ Name = "李四"; Age = 30; City = "上海" },
+    @{ Name = "王五"; Age = 28; City = "广州" }
+)
+
+# 写入 Excel 文件
+$data | Export-Excel -Path "C:\path\to\output.xlsx" -AutoSize -BoldTopRow
+
+# 写入指定工作表
+$data | Export-Excel -Path "C:\path\to\output.xlsx" -WorksheetName "Sheet2" -AutoSize -BoldTopRow
+
+# 追加到现有工作表
+$data | Export-Excel -Path "C:\path\to\output.xlsx" -WorksheetName "Sheet1" -Append
+```
+
+#### 11.1.4 筛选和处理数据
+
+```powershell
+# 读取数据
+$excelData = Import-Excel -Path "C:\path\to\data.xlsx"
+
+# 筛选数据
+$filteredData = $excelData | Where-Object { $_.Age -gt 25 }
+
+# 添加计算列
+$processedData = $filteredData | Select-Object *, @{Name="AgeGroup"; Expression={if ($_.Age -lt 30) {"青年"} else {"中年"}}}
+
+# 写入处理后的数据
+$processedData | Export-Excel -Path "C:\path\to\processed.xlsx" -AutoSize -BoldTopRow
+```
+
+## 12. HTTP 请求与 OAuth2.0
+
+### 12.1 使用 Invoke-RestMethod 发送 HTTP 请求
+
+```powershell
+# 发送 GET 请求
+$response = Invoke-RestMethod -Uri "https://api.example.com/data" -Method Get
+
+# 发送 POST 请求
+$body = @{
+    name = "张三"
+    age = 25
+}
+$response = Invoke-RestMethod -Uri "https://api.example.com/users" -Method Post -Body ($body | ConvertTo-Json) -ContentType "application/json"
+```
+
+### 12.2 OAuth2.0 认证
+
+#### 12.2.1 获取 OAuth2.0 令牌
+
+```powershell
+function Get-OAuth2Token {
+    param (
+        [string]$ClientId,
+        [string]$ClientSecret,
+        [string]$TokenEndpoint,
+        [string]$Scope = ""
+    )
+    
+    $body = @{
+        grant_type = "client_credentials"
+        client_id = $ClientId
+        client_secret = $ClientSecret
+    }
+    
+    if ($Scope) {
+        $body["scope"] = $Scope
+    }
+    
+    $response = Invoke-RestMethod -Uri $TokenEndpoint -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
+    return $response
+}
+
+# 使用示例
+$token = Get-OAuth2Token -ClientId "your-client-id" -ClientSecret "your-client-secret" -TokenEndpoint "https://auth.example.com/token" -Scope "read write"
+$accessToken = $token.access_token
+```
+
+#### 12.2.2 使用 OAuth2.0 令牌发送请求
+
+```powershell
+# 使用获取到的令牌发送请求
+$headers = @{
+    "Authorization" = "Bearer $accessToken"
+    "Content-Type" = "application/json"
+}
+
+$response = Invoke-RestMethod -Uri "https://api.example.com/protected-resource" -Method Get -Headers $headers
+```
+
+#### 12.2.3 解析 JSON 响应
+
+```powershell
+# 发送请求并解析 JSON 响应
+$response = Invoke-RestMethod -Uri "https://api.example.com/data" -Method Get -Headers $headers
+
+# 访问响应数据
+Write-Host "状态: $($response.status)"
+Write-Host "数据总数: $($response.data.count)"
+
+# 遍历数据
+foreach ($item in $response.data.items) {
+    Write-Host "ID: $($item.id), Name: $($item.name)"
+}
+```
+
+## 13. 总结
+
+PowerShell 语法基于 .NET，结合了命令行和脚本语言的特点。本文介绍了 PowerShell 的基本语法、变量、数据类型、运算符、流程控制语句、函数、脚本块、模块、错误处理以及常见问题解决方案。
+
+掌握 PowerShell 语法是使用 PowerShell 进行自动化和配置管理的基础。通过学习和实践，可以逐步掌握 PowerShell 的强大功能，实现复杂的自动化任务，包括端口管理、Excel 处理和 OAuth2.0 认证等高级功能。
